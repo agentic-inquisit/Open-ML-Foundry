@@ -1,0 +1,42 @@
+[run]
+# Coverage configuration for Sentinel-Finetune
+source = sentinel
+omit =
+    */tests/*
+    */test_*.py
+    */__pycache__/*
+    */site-packages/*
+    setup.py
+    */venv/*
+    */virtualenv/*
+
+[report]
+# Reporting configuration
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+    @abstract
+    if sys.version_info
+    @overload
+    except ImportError:
+    class .*\(.*Protocol\):
+    @(abc\.)?abstractproperty
+
+# Set minimum coverage threshold
+fail_under = 80
+precision = 2
+show_missing = True
+skip_covered = False
+
+[html]
+directory = htmlcov
+
+[paths]
+source =
+    sentinel
+    */site-packages/sentinel

@@ -1,0 +1,65 @@
+# Image Classification Fine-Tuning Configuration
+
+# Model Configuration
+model:
+  name: "resnet50"
+  pretrained: true
+  num_classes: 10
+
+# Training Configuration
+training:
+  epochs: 10
+  batch_size: 32
+  learning_rate: 0.0001
+  optimizer: "adam"
+  loss_function: "cross_entropy"
+  weight_decay: 0.0001
+
+# Data Configuration
+data:
+  dataset_path: "./data"
+  train_split: 0.8
+  val_split: 0.1
+  test_split: 0.1
+
+  # Preprocessing
+  image_size: 224
+  normalize:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+
+  # Augmentation
+  augmentation:
+    enabled: true
+    random_flip: true
+    random_rotation: 15
+    random_crop: true
+
+# Hardware Configuration
+hardware:
+  device: "auto"  # cuda, cpu, or auto
+  mixed_precision: false
+  num_workers: 4
+
+# Logging
+logging:
+  log_level: "INFO"
+  save_interval: 1  # Save checkpoint every N epochs
+  log_interval: 10  # Log metrics every N batches
+
+# Output Configuration
+output:
+  model_dir: "./outputs"
+  checkpoint_dir: "./checkpoints"
+  tensorboard_dir: "./runs"
+
+# Callback Configuration
+callbacks:
+  early_stopping:
+    enabled: true
+    patience: 3
+    metric: "val_loss"
+
+  model_checkpoint:
+    enabled: true
+    save_best: true

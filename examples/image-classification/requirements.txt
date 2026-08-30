@@ -1,0 +1,14 @@
+# Image Classification Example Requirements
+
+# Core dependencies
+torch>=2.0.0
+torchvision>=0.15.0
+numpy>=1.24.0
+tqdm>=4.65.0
+
+# Configuration
+pyyaml>=6.0
+
+# Optional: GPU support
+# For CUDA 11.8:
+# torch-cuda @ https://download.pytorch.org/whl/cu118/torch-2.0.1%2Bcu118-cp311-cp311-linux_x86_64.whl

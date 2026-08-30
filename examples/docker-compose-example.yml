@@ -1,0 +1,183 @@
+version: '3.8'
+
+# Docker Compose Example: Complete LocalML finetune Stack
+#
+# This example shows how to run all Sentinel services together:
+# - API server (port 8000)
+# - Edge module (port 8001)
+# - PostgreSQL database
+#
+# Usage:
+#   docker-compose -f docker-compose-example.yml up
+#
+# Access:
+#   - API: http://localhost:8000
+#   - API Docs: http://localhost:8000/docs
+#   - Edge: http://localhost:8001
+#   - Database: localhost:5432
+
+services:
+  # API Server
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile.api
+    container_name: sentinel-api-example
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://sentinel:sentinel@postgres:5432/sentinel
+      - MODEL_PATH=/models
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./models:/models
+      - ./data:/data
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Edge Inference Module
+  edge:
+    build:
+      context: ..
+      dockerfile: Dockerfile.edge
+    container_name: sentinel-edge-example
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=development
+      - MODEL_PATH=/models
+      - DATA_PATH=/data
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./models:/models
+      - ./data:/data
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: sentinel-postgres-example
+    environment:
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel
+      POSTGRES_DB: sentinel
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache (Optional)
+  redis:
+    image: redis:7-alpine
+    container_name: sentinel-redis-example
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: pgAdmin for Database Management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: sentinel-pgadmin-example
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - sentinel-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  sentinel-network:
+    driver: bridge
+
+# Environment Variables
+# ====================
+# ENVIRONMENT: development, production, testing
+# DATABASE_URL: PostgreSQL connection string
+# MODEL_PATH: Directory containing models
+# DATA_PATH: Directory containing datasets
+# LOG_LEVEL: DEBUG, INFO, WARNING, ERROR, CRITICAL
+# REDIS_URL: Redis connection string (optional)
+
+# Quick Commands
+# ==============
+# Start all services:
+#   docker-compose -f docker-compose-example.yml up
+#
+# Start in background:
+#   docker-compose -f docker-compose-example.yml up -d
+#
+# View logs:
+#   docker-compose -f docker-compose-example.yml logs -f api
+#
+# Stop services:
+#   docker-compose -f docker-compose-example.yml down
+#
+# Remove volumes (clean slate):
+#   docker-compose -f docker-compose-example.yml down -v
+#
+# Rebuild images:
+#   docker-compose -f docker-compose-example.yml up --build
+#
+# Access services:
+#   - API: http://localhost:8000
+#   - API Docs: http://localhost:8000/docs
+#   - Edge: http://localhost:8001
+#   - pgAdmin: http://localhost:5050
+#   - Redis: localhost:6379
+
+# Production Notes
+# ================
+# For production deployment:
+# 1. Use environment variables for sensitive data
+# 2. Add resource limits (memory, CPU)
+# 3. Configure proper logging and monitoring
+# 4. Use volume drivers for persistence
+# 5. Set up SSL/TLS for HTTPS
+# 6. Configure firewall rules
+# 7. Use secrets management
+# 8. Enable auto-restart policies

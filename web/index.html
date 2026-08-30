@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel Cloud Vision</title>
+    <link rel="stylesheet" href="globals.css">
+    <link rel="stylesheet" href="theme.css">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 1rem;
+            padding: 1rem;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar with scrollable content */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--card-bg);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--card-border);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* Feature sections */
+        .feature-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .feature-section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin: 0.5rem 0 0 0;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .stream-view {
+            background: var(--surface);
+            border: 2px solid var(--accent);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+        }
+
+        .stream-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-left: 3px solid var(--accent);
+            color: var(--foreground);
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: 'Monaco', monospace;
+        }
+
+        .nova-card1 {
+            height: 100%;
+            width: 100%;
+            font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            align-items: center;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--orange-hover) 100%);
+            border-radius: 4px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(255, 103, 1, 0.2);
+            box-sizing: border-box;
+            color: var(--pitch-black);
+            display: flex;
+            justify-content: center;
+            line-height: 1em;
+            min-width: 10px;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nova-card1:active,
+        .nova-card1:hover {
+            outline: 0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 103, 1, 0.3);
+        }
+
+        .nova-card1 span {
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            transition: 200ms ease;
+        }
+
+        .nova-card1:hover span {
+            opacity: 0.9;
+        }
+
+        .model-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-grid">
+        <!-- Sidebar: Features (Left) -->
+        <div class="sidebar">
+            <!-- Header -->
+            <div style="text-align: center; padding: 0.5rem 0;">
+                <div style="font-size: 1.3rem; font-weight: 700; color: var(--accent); margin-bottom: 0.25rem;">Sentinel</div>
+                <div style="font-size: 0.75rem; color: var(--dark-gray); letter-spacing: 0.05em;">Cloud Vision</div>
+            </div>
+
+            <!-- Search -->
+            <input type="text" id="model-search" placeholder="Search models..."
+                style="width: 100%; background: var(--card-bg); color: var(--foreground); border: 1px solid var(--card-border); padding: 8px; border-radius: 4px; box-sizing: border-box; font-size: 0.9rem;">
+
+            <!-- VISION MODELS SECTION -->
+            <div class="feature-section">
+                <div class="feature-section-title">📷 Vision Models</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        <span style="font-weight: 600;">Status</span>
+                        <div id="conn-status"
+                            style="display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: #ef4444; font-weight: 600;">
+                            <span id="conn-light"
+                                style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444;"></span>
+                            OFFLINE
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
+                        <button class="nova-card1" role="button" style="padding: 0.5rem; margin: 0;">
+                            <span>ResNet-18</span>
+                        </button>
+                        <button class="nova-card1" role="button" style="padding: 0.5rem; margin: 0;">
+                            <span>ResNet-50</span>
+                        </button>
+                        <button class="nova-card1" role="button" style="padding: 0.5rem; margin: 0; opacity: 0.6;">
+                            <span>YOLOv8</span>
+                        </button>
+                        <button id="start-object-detection-btn" class="nova-card1" role="button" style="padding: 0.5rem; margin: 0; margin-top: 0.5rem;">
+                            <span>Start Capture</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- TIME-SERIES MODELS SECTION -->
+            <div class="feature-section">
+                <div class="feature-section-title">⏱️ Time-Series Models</div>
+                <div class="nova-card">
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
+                        <button class="nova-card1" role="button" style="padding: 0.5rem; margin: 0;">
+                            <span>TCN-Segmenter</span>
+                        </button>
+                        <button class="nova-card1" role="button" style="padding: 0.5rem; margin: 0; opacity: 0.6;">
+                            <span>TCN-Sequence</span>
+                        </button>
+                        <button id="start-tcn-btn" class="nova-card1" role="button" style="padding: 0.5rem; margin: 0; margin-top: 0.5rem;">
+                            <span>Start Capture</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NLP MODELS SECTION -->
+            <div class="feature-section">
+                <div class="feature-section-title">💬 NLP Models</div>
+                <div class="nova-card">
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem;">
+                        <button class="nova-card1" role="button" style="padding: 0.5rem; margin: 0;">
+                            <span>BERT</span>
+                        </button>
+                        <button class="nova-card1" role="button" style="padding: 0.5rem; margin: 0; opacity: 0.6;">
+                            <span>ViL-BERT</span>
+                        </button>
+                        <button class="nova-card1" role="button" style="padding: 0.5rem; margin: 0; opacity: 0.6;">
+                            <span>GPT</span>
+                        </button>
+                        <button id="start-dialogue-btn" class="nova-card1" role="button" style="padding: 0.5rem; margin: 0; margin-top: 0.5rem;">
+                            <span>Start Capture</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TRAINING SECTION -->
+            <div class="feature-section">
+                <div class="feature-section-title">🚀 Training & Optimization</div>
+                <div class="nova-card">
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
+                        <div>
+                            <label style="color: var(--foreground); font-size: 0.75rem; font-weight: 600;">Target Object:</label>
+                            <input type="text" id="target-object-input" placeholder="e.g. Red Helmet"
+                                style="width: 100%; background: var(--card-bg); color: var(--foreground); border: 1px solid var(--card-border); padding: 6px; border-radius: 3px; box-sizing: border-box; margin-top: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div>
+                            <label style="color: var(--foreground); font-size: 0.75rem; font-weight: 600;">Dataset:</label>
+                            <input type="file" id="dataset-input" accept="image/*,.zip"
+                                style="width: 100%; background: var(--card-bg); color: var(--foreground); border: 1px solid var(--card-border); padding: 6px; border-radius: 3px; box-sizing: border-box; margin-top: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <div id="dataset-dropzone"
+                            style="padding: 12px; border: 2px dashed var(--accent); text-align: center; color: var(--foreground); cursor: pointer; background: var(--overlay-1); border-radius: 3px; font-size: 0.8rem;">
+                            Drag or click
+                        </div>
+                        <button id="start-finetune-btn" class="nova-card1" role="button" style="padding: 0.5rem; margin: 0;">
+                            <span>Train Model</span>
+                        </button>
+                        <div id="finetune-status"
+                            style="display: none; border-top: 1px solid var(--card-border); padding-top: 6px; font-size: 0.75rem; color: #10b981; font-weight: 600;">
+                            Training...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATA PROCESSING SECTION -->
+            <div class="feature-section">
+                <div class="feature-section-title">⚙️ Data Processing</div>
+                <div class="nova-card">
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem;">
+                        <div>
+                            <label style="color: var(--foreground); font-size: 0.75rem; font-weight: 600;">Image Input:</label>
+                            <input type="file" id="preprocess-input" accept="image/*"
+                                style="width: 100%; background: var(--card-bg); color: var(--foreground); border: 1px solid var(--card-border); padding: 6px; border-radius: 3px; box-sizing: border-box; margin-top: 0.25rem; font-size: 0.85rem;">
+                        </div>
+                        <button id="run-preprocess-btn" class="nova-card1" role="button" style="padding: 0.5rem; margin: 0;">
+                            <span>Preprocess</span>
+                        </button>
+                        <div id="preprocess-result"
+                            style="display: none; border-top: 1px solid var(--card-border); padding-top: 6px; font-size: 0.75rem; color: #10b981; word-break: break-all; font-weight: 600;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Stream View (Center) -->
+        <main class="stream-view">
+            <div id="stream-overlay" class="stream-overlay" style="display: none;">
+                LIVE FEED: HD-STREAM-01 <br>
+                <span style="color: var(--accent)">● RECORDING</span>
+            </div>
+            <!-- Canvas/Video for stream -->
+            <div id="stream-container"
+                style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%;">
+                <!-- Canvas for bounding boxes -->
+                <canvas id="detection-canvas"
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
+                <video id="webcam-feed" autoplay playsinline
+                    style="max-width: 100%; max-height: 80%; display: none; border: 2px solid var(--accent); position: relative; z-index: 1; border-radius: 4px;"></video>
+                <button id="start-camera-btn"
+                    style="background: var(--accent); color: var(--pitch-black); border: none; padding: 10px 20px; cursor: pointer; font-size: 1rem; font-weight: bold; border-radius: 4px; z-index: 20; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 12px rgba(255, 103, 1, 0.3)'" onmouseout="this.style.boxShadow='';">
+                    START CAMERA
+                </button>
+                <button id="stop-camera-btn"
+                    style="background: var(--card-bg-hover); color: var(--foreground); border: 1px solid var(--card-border); padding: 10px 20px; cursor: pointer; font-size: 1rem; font-weight: bold; display: none; border-radius: 4px;">
+                    STOP CAMERA
+                </button>
+                <p id="camera-status"
+                    style="color: var(--dark-gray); font-family: 'Monaco', monospace; font-size: 0.75rem; margin: 1rem 0 0 0;">
+                    [ CAMERA INACTIVE ]</p>
+                <button id="select-file-btn"
+                    style="background: var(--accent); color: var(--pitch-black); border: none; padding: 10px 20px; cursor: pointer; font-size: 1rem; font-weight: bold; border-radius: 4px; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 12px rgba(255, 103, 1, 0.3)'" onmouseout="this.style.boxShadow='';">
+                    SELECT FILE
+                </button>
+                <button id="connect-edge-btn"
+                    style="background: var(--accent); color: var(--pitch-black); border: none; padding: 10px 20px; cursor: pointer; font-size: 1rem; font-weight: bold; border-radius: 4px; margin-top: 20px; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 12px rgba(255, 103, 1, 0.3)'" onmouseout="this.style.boxShadow='';">
+                    CONNECT TO EDGE DEVICE
+                </button>
+                <button id="connect-phone-btn"
+                    style="background: var(--accent); color: var(--pitch-black); border: none; padding: 10px 20px; cursor: pointer; font-size: 1rem; font-weight: bold; border-radius: 4px; margin-top: 20px; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 12px rgba(255, 103, 1, 0.3)'" onmouseout="this.style.boxShadow='';">
+                    CONNECT TO PHONE CAMERA
+                </button>
+                <input type="file" id="file-input" accept="video/*" style="display: none;">
+            </div>
+        </main>
+
+        <!-- Right Panel: Controls & Alerts -->
+        <div style="display: flex; flex-direction: column; gap: 1rem; overflow-y: auto; padding-right: 0.5rem;">
+            <!-- Navigation -->
+            <section class="nova-card" style="display: flex; flex-direction: column;">
+            <div>
+                <div
+                    style="display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                    <a href="http://localhost:8001/admin" target="_blank" class="nova-card1"
+                        style="text-decoration: none; padding: 8px 12px;">Admin
+                        Console</a>
+                    <button id="nav-login-btn" class="nova-card1"
+                        style="padding: 8px 12px;">Login</button>
+                    <button id="nav-signup-btn" class="nova-card1"
+                        style="padding: 8px 12px;">Sign
+                        up</button>
+                </div>
+            </div>
+
+            <!-- Alerts Section -->
+            <section class="nova-card">
+                <h3 style="color: var(--accent); margin: 0 0 1rem 0;">ALERTS</h3>
+                <div id="alert-feed" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 200px; overflow-y: auto;">
+                    <p style="color: var(--dark-gray); font-size: 0.85rem; margin: 0;">No alerts yet</p>
+                </div>
+            </section>
+
+            <!-- Video Generator -->
+        <section class="nova-card" style="display: flex; flex-direction: column; flex: 1;">
+            <h3 style="color: var(--accent); margin: 0 0 1rem 0;">VIDEO GENERATOR</h3>
+            <textarea id="video-prompt" placeholder="Enter prompt..."
+                style="width: 100%; background: var(--card-bg); color: var(--foreground); border: 1px solid var(--card-border); padding: 8px; margin-bottom: 8px; border-radius: 4px; font-family: inherit; resize: vertical; min-height: 80px; flex: 1;"></textarea>
+            <button id="generate-video-btn"
+                style="width: 100%; background: var(--accent); color: var(--pitch-black); border: none; padding: 10px; cursor: pointer; font-weight: 600; border-radius: 4px; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 12px rgba(255, 103, 1, 0.3)'" onmouseout="this.style.boxShadow='';">GENERATE</button>
+            <div id="video-result" style="margin-top: 10px; display: none;">
+                <video id="output-video" width="100%" controls style="border: 1px solid var(--accent); border-radius: 4px;">
+                    Your browser does not support the video tag.
+                </video>
+                <p id="generating-status" style="color: var(--accent); font-size: 0.8rem; display: none; margin-top: 0.5rem; font-weight: 600;">
+                    GENERATING...</p>
+            </div>
+        </section>
+        </div>
+    </div>
+
+    <script>
+        // Model Search Functionality
+        document.getElementById('model-search').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const modelButtons = document.querySelectorAll('.model-list .nova-card1');
+
+            modelButtons.forEach(btn => {
+                const text = btn.querySelector('span').textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    btn.style.display = 'flex';
+                } else {
+                    btn.style.display = 'none';
+                }
+            });
+        });
+
+        // Camera activation
+        const startCameraBtn = document.getElementById('start-camera-btn');
+        const stopCameraBtn = document.getElementById('stop-camera-btn');
+        const selectFileBtn = document.getElementById('select-file-btn');
+        const connectEdgeBtn = document.getElementById('connect-edge-btn');
+        const connectPhoneBtn = document.getElementById('connect-phone-btn');
+        const fileInput = document.getElementById('file-input');
+        const webcamFeed = document.getElementById('webcam-feed');
+        const cameraStatus = document.getElementById('camera-status');
+        const streamOverlay = document.getElementById('stream-overlay');
+        const alertFeed = document.getElementById('alert-feed');
+        const startObjectDetectionBtn = document.getElementById('start-object-detection-btn');
+        const startTcnBtn = document.getElementById('start-tcn-btn');
+        const startDialogueBtn = document.getElementById('start-dialogue-btn');
+        const detectionCanvas = document.getElementById('detection-canvas');
+        const ctx = detectionCanvas.getContext('2d');
+        let detectionInterval = null;
+
+        let currentStream = null;
+
+        // QR Code Modal
+        const modal = document.createElement('div');
+        modal.style.display = 'none';
+        modal.style.position = 'fixed';
+        modal.style.top = '0';
+        modal.style.left = '0';
+        modal.style.width = '100%';
+        modal.style.height = '100%';
+        modal.style.background = 'rgba(0,0,0,0.8)';
+        modal.style.zIndex = '1000';
+        modal.style.justifyContent = 'center';
+        modal.style.alignItems = 'center';
+        modal.style.flexDirection = 'column';
+        modal.id = 'qr-modal';
+
+        modal.innerHTML = `
+            <div class="nova-card" style="padding: 2rem; align-items: center; justify-content: center; display: flex; flex-direction: column;">
+                <h2 style="color: var(--accent); margin-bottom: 1rem;">SCAN TO CONNECT</h2>
+                <img id="qr-image" src="" style="width: 250px; height: 250px; border: 2px solid var(--accent); margin-bottom: 1rem; border-radius: 4px;">
+                <p style="text-align: center; color: var(--foreground); margin-bottom: 1rem;">Scan with your mobile camera<br>to start streaming.</p>
+                <button id="close-modal-btn" style="background: var(--accent); color: var(--pitch-black); border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: all 0.2s ease;" onmouseover="this.style.boxShadow='0 4px 12px rgba(255, 103, 1, 0.3)'" onmouseout="this.style.boxShadow='';">CLOSE</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.getElementById('close-modal-btn').addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        connectPhoneBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch('http://localhost:8001/qr-code');
+                if (res.ok) {
+                    const blob = await res.blob();
+                    document.getElementById('qr-image').src = URL.createObjectURL(blob);
+                    modal.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error("Error fetching QR code:", error);
+                alert("Failed to connect to backend for QR Code.");
+            }
+        });
+        startObjectDetectionBtn.addEventListener('click', toggleCamera);
+        stopCameraBtn.addEventListener('click', stopCamera);
+
+
+        async function toggleCamera() {
+            if (currentStream) {
+                stopCamera();
+            } else {
+                startCamera();
+            }
+        }
+
+        async function startCamera() {
+            try {
+                cameraStatus.textContent = '[ REQUESTING CAMERA ACCESS... ]';
+                cameraStatus.style.color = 'var(--accent)';
+
+                currentStream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 1280, height: 720 },
+                    audio: false
+                });
+
+                webcamFeed.srcObject = currentStream;
+                webcamFeed.style.display = 'block';
+                startCameraBtn.style.display = 'none';
+                stopCameraBtn.style.display = 'block';
+
+                // Update Start Capturing button to Stop Capturing
+                const btnSpan = startObjectDetectionBtn.querySelector('span');
+                if (btnSpan) btnSpan.textContent = "Stop Capturing";
+                startObjectDetectionBtn.style.backgroundColor = "var(--card-bg-hover)";
+
+                streamOverlay.style.display = 'block';
+                cameraStatus.textContent = '[ CAMERA ACTIVE ]';
+                cameraStatus.style.color = '#10b981';
+
+                // Resize canvas to match video
+                webcamFeed.onloadedmetadata = () => {
+                    detectionCanvas.width = webcamFeed.videoWidth;
+                    detectionCanvas.height = webcamFeed.videoHeight;
+                    // Adjust canvas style size to match the displayed video size
+                    detectionCanvas.style.width = webcamFeed.clientWidth + 'px';
+                    detectionCanvas.style.height = webcamFeed.clientHeight + 'px';
+                };
+
+                // Start polling vision module
+                detectionInterval = setInterval(async () => {
+                    try {
+                        const res = await fetch('http://localhost:8001/detect');
+                        const data = await res.json();
+
+                        if (data.detections) {
+                            // Clear previous drawings
+                            ctx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+
+                            // Re-scale canvas if video size changed (simple check)
+                            if (webcamFeed.videoWidth > 0 && (detectionCanvas.width !== webcamFeed.videoWidth || detectionCanvas.height !== webcamFeed.videoHeight)) {
+                                detectionCanvas.width = webcamFeed.videoWidth;
+                                detectionCanvas.height = webcamFeed.videoHeight;
+                            }
+
+                            if (data.detections.length > 0) {
+                                const latestAlert = document.createElement('div');
+                                latestAlert.className = 'nova-card';
+                                latestAlert.style.marginBottom = '0.5rem';
+                                latestAlert.style.fontSize = '0.8rem';
+                                latestAlert.innerHTML = `<strong>${data.timestamp}</strong><br>` +
+                                    data.detections.map(d => `${d.label}: ${(d.score * 100).toFixed(0)}%`).join('<br>');
+                                alertFeed.prepend(latestAlert);
+
+                                // Keep only last 5 alerts
+                                while (alertFeed.children.length > 5) {
+                                    alertFeed.removeChild(alertFeed.lastChild);
+                                }
+
+                                // Draw boxes
+                                data.detections.forEach(d => {
+                                    if (d.box && d.box.length === 4) {
+                                        const [x1, y1, x2, y2] = d.box;
+                                        ctx.strokeStyle = '#ff0000';
+                                        ctx.lineWidth = 3;
+                                        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+
+                                        ctx.font = '16px Arial';
+                                        ctx.fillStyle = '#ff0000';
+                                        ctx.fillText(`${d.label} ${(d.score * 100).toFixed(0)}%`, x1, y1 - 5);
+                                    }
+                                });
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Vision module error:', err);
+                    }
+                }, 100); // Fast Poll for smoother UI
+            } catch (error) {
+                console.error('Camera access error:', error);
+                cameraStatus.textContent = '[ CAMERA ACCESS DENIED ]';
+                cameraStatus.style.color = '#ef4444';
+            }
+        }
+
+        selectFileBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                // Stop camera if active
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                    currentStream = null;
+                }
+                if (detectionInterval) {
+                    clearInterval(detectionInterval);
+                    detectionInterval = null;
+                }
+
+                const fileURL = URL.createObjectURL(file);
+                webcamFeed.srcObject = null;
+                webcamFeed.src = fileURL;
+                webcamFeed.style.display = 'block';
+                webcamFeed.loop = true; // Auto loop for files
+                webcamFeed.play();
+
+                startCameraBtn.style.display = 'block';
+                stopCameraBtn.style.display = 'none';
+                streamOverlay.style.display = 'block';
+                cameraStatus.textContent = `[ FILE: ${file.name} ]`;
+                cameraStatus.style.color = '#10b981';
+            }
+        });
+
+        // Connection heartbeat
+        const connLight = document.getElementById('conn-light');
+        const connText = document.getElementById('conn-status');
+        const successColor = '#10b981';
+        const errorColor = '#ef4444';
+
+        setInterval(async () => {
+            try {
+                const res = await fetch('http://localhost:8001/', { method: 'GET' });
+                if (res.ok) {
+                    connLight.style.background = successColor;
+                    connLight.style.boxShadow = `0 0 5px ${successColor}`;
+                    connText.childNodes[2].textContent = ' ONLINE';
+                    connText.style.color = successColor;
+                } else {
+                    throw new Error();
+                }
+            } catch (e) {
+                connLight.style.background = errorColor;
+                connLight.style.boxShadow = 'none';
+                connText.childNodes[2].textContent = ' OFFLINE';
+                connText.style.color = errorColor;
+            }
+        }, 3000);
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+            if (detectionInterval) {
+                clearInterval(detectionInterval);
+                detectionInterval = null;
+            }
+            webcamFeed.srcObject = null;
+            webcamFeed.style.display = 'none';
+            stopCameraBtn.style.display = 'none';
+
+            // Reset Start Capturing button
+            const btnSpan = startObjectDetectionBtn.querySelector('span');
+            if (btnSpan) btnSpan.textContent = "Start Capturing";
+            startObjectDetectionBtn.style.backgroundColor = ""; // Reset to CSS default
+
+            streamOverlay.style.display = 'none';
+            startCameraBtn.style.display = 'block';
+            cameraStatus.textContent = '[ CAMERA INACTIVE ]';
+            cameraStatus.style.color = 'var(--text-secondary)';
+
+            // Clear canvas
+            ctx.clearRect(0, 0, detectionCanvas.width, detectionCanvas.height);
+        }
+
+        // Video generator
+        document.getElementById('generate-video-btn').addEventListener('click', async () => {
+            const prompt = document.getElementById('video-prompt').value;
+            if (!prompt) return;
+
+            const btn = document.getElementById('generate-video-btn');
+            const resultDiv = document.getElementById('video-result');
+            const videoElement = document.getElementById('output-video');
+            const statusLabel = document.getElementById('generating-status');
+
+            btn.disabled = true;
+            resultDiv.style.display = 'block';
+            videoElement.style.display = 'none';
+            statusLabel.style.display = 'block';
+
+            try {
+                const response = await fetch('http://localhost:8000/generate-video', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                if (!response.ok) throw new Error('Generation failed');
+
+                const blob = await response.blob();
+                const videoUrl = URL.createObjectURL(blob);
+
+                videoElement.src = videoUrl;
+                videoElement.style.display = 'block';
+                statusLabel.style.display = 'none';
+                videoElement.play();
+            } catch (error) {
+                console.error(error);
+                statusLabel.innerText = 'ERROR';
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        // Advanced Finetuning Station Logic
+        const finetuneBtn = document.getElementById('start-finetune-btn');
+        if (finetuneBtn) {
+            finetuneBtn.addEventListener('click', async () => {
+                const targetObj = document.getElementById('target-object-input').value;
+                const datasetInput = document.getElementById('dataset-input');
+                const statusDiv = document.getElementById('finetune-status');
+
+                if (!targetObj) {
+                    alert("Please enter a target object name.");
+                    return;
+                }
+                if (!datasetInput.files.length) {
+                    alert("Please select a dataset file.");
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('target_object', targetObj);
+                formData.append('dataset', datasetInput.files[0]);
+
+                statusDiv.style.display = 'block';
+                statusDiv.textContent = "[ STATUS: INITIALIZING JAX/FLAX... ]";
+                statusDiv.style.color = 'var(--accent);'
+
+                try {
+                    const res = await fetch('http://localhost:8001/finetune', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (data.status === 'error') {
+                        statusDiv.textContent = "[ ERROR: " + data.message + " ]";
+                        statusDiv.style.color = '#ef4444';
+                    } else {
+                        let downloadHtml = '';
+                        if (data.download_url) {
+                            downloadHtml = `<br><a href="${data.download_url}" target="_blank" class="nova-card1" style="display:inline-block; width:auto; margin-top:10px; padding:8px 15px; text-decoration:none;">DOWNLOAD MODEL (.PTH)</a>`;
+                        }
+                        statusDiv.innerHTML = `[ COMPLETE ]<br>Final Loss: ${data.result.final_loss?.toFixed(5)}<br>Steps: ${data.result.steps}${downloadHtml}`;
+                        statusDiv.style.color = '#10b981';
+                    }
+                } catch (err) {
+                    console.error(err);
+                    statusDiv.textContent = "[ CONNECTION FAILED ]";
+                    statusDiv.style.color = '#ef4444';
+                }
+            });
+        }
+
+        // Drag & Drop handling for dataset
+        const dropzone = document.getElementById('dataset-dropzone');
+        const datasetInput = document.getElementById('dataset-input');
+
+        // Click on dropzone opens file selector
+        dropzone.addEventListener('click', () => datasetInput.click());
+
+        // Prevent default browser drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(ev => {
+            dropzone.addEventListener(ev, e => e.preventDefault());
+        });
+
+        // Visual feedback on dragover
+        dropzone.addEventListener('dragover', () => dropzone.classList.add('dragover'));
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+
+        // When files are dropped, populate the hidden input
+        dropzone.addEventListener('drop', e => {
+            dropzone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length) {
+                const dt = new DataTransfer();
+                for (let i = 0; i < files.length; i++) dt.items.add(files[i]);
+                datasetInput.files = dt.files;
+                // Optional UI feedback
+                dropzone.textContent = `Selected ${files.length} file(s): ${files[0].name}`;
+            }
+        });
+
+        // Preprocess Station Logic
+        const preprocessBtn = document.getElementById('run-preprocess-btn');
+        if (preprocessBtn) {
+            preprocessBtn.addEventListener('click', async () => {
+                const input = document.getElementById('preprocess-input');
+                const resultDiv = document.getElementById('preprocess-result');
+
+                if (!input.files.length) {
+                    alert("Please select an image file.");
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('file', input.files[0]);
+
+                resultDiv.style.display = 'block';
+                resultDiv.textContent = "[ STATUS: PROCESSING... ]";
+                resultDiv.style.color = 'var(--accent);'
+
+                try {
+                    const res = await fetch('http://localhost:8000/preprocess', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (data.status === 'error') {
+                        resultDiv.textContent = "[ ERROR: " + data.message + " ]";
+                        resultDiv.style.color = '#ef4444';
+                    } else {
+                        resultDiv.innerHTML = `[ COMPLETE ]<br>
+                        Dimensions: ${data.original_dimensions.width}x${data.original_dimensions.height}<br>
+                        Aspect Ratio: ${data.original_dimensions.aspect_ratio.toFixed(2)}<br>
+                        Processed Shape: ${data.processed_shape.join('x')}<br>
+                        Message: ${data.message}`;
+                        resultDiv.style.color = '#10b981';
+                    }
+                } catch (err) {
+                    console.error(err);
+                    resultDiv.textContent = "[ CONNECTION FAILED ]";
+                    resultDiv.style.color = '#ef4444';
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "maintainers"
+    labels:
+      - "dependencies"
+      - "python"
+    commit-message:
+      prefix: "chore(deps):"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "maintainers"
+    labels:
+      - "ci"
+      - "github-actions"
+    commit-message:
+      prefix: "ci:"
+      include: "scope"
+
+  # Docker (if using from image)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "05:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "maintainers"
+    labels:
+      - "dependencies"
+      - "docker"
+    commit-message:
+      prefix: "ci(docker):"
+      include: "scope"
+
+# Grouping strategy
+groups:
+  development-dependencies:
+    dependency-type: "development"
+    update-types:
+      - "minor"
+      - "patch"
+
+  production-dependencies:
+    dependency-type: "production"
+    update-types:
+      - "major"
+      - "minor"
+      - "patch"

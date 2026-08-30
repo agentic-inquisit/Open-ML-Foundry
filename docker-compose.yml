@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: sentinel-api
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DATABASE_URL=postgresql://sentinel:sentinel@postgres:5432/sentinel
+    depends_on:
+      - postgres
+    volumes:
+      - ./serving:/app/serving
+      - ./models.py:/app/models.py
+    command: python serving/main.py
+
+  edge:
+    build:
+      context: .
+      dockerfile: Dockerfile.edge
+    container_name: sentinel-edge
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=development
+    volumes:
+      - ./edge:/app/edge
+    command: python edge/vision_module.py
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: sentinel-postgres
+    environment:
+      POSTGRES_USER: sentinel
+      POSTGRES_PASSWORD: sentinel
+      POSTGRES_DB: sentinel
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinel"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  default:
+    name: sentinel-network
