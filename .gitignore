@@ -214,7 +214,6 @@ yarn-error.log
 
 # Reserved/Internal documentation
 .reserve/
-.reservesentinel-cloud-vision-upd/
 
 # Test outputs
 test-results/
