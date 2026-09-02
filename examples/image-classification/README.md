@@ -140,4 +140,4 @@ Use GPU (if available):
 
 - [PyTorch Transfer Learning](https://pytorch.org/tutorials/beginner/transfer_learning_tutorial.html)
 - [ResNet Paper](https://arxiv.org/abs/1512.03385)
-- [LocalML finetune Docs](../../docs/tutorials/fine-tune-classifier.md)
+- [Open ML Foundry Docs](../../docs/tutorials/fine-tune-classifier.md)

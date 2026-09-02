@@ -1,13 +1,13 @@
 # Contributing Code
 
-Guide for developers wanting to contribute to LocalML finetune.
+Guide for developers wanting to contribute to Open ML Foundry.
 
 ## Setup Development Environment
 
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/agentic-inquisit/localml-finetune.git
+git clone https://github.com/agentic-inquisit/open-ml-foundry.git
 cd sentinel-finetune
 ```
 
@@ -367,4 +367,4 @@ See CHANGELOG.md for format.
 
 ## Thank You!
 
-Contributions are what make LocalML finetune great. Thank you for helping!
+Contributions are what make Open ML Foundry great. Thank you for helping!

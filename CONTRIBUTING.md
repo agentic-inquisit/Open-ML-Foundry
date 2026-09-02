@@ -1,4 +1,4 @@
-# Contributing to LocalML finetune
+# Contributing to Open ML Foundry
 
 Thank you for your interest in contributing! We welcome contributions from everyone. Here's how to get started.
 

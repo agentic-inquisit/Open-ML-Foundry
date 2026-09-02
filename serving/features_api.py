@@ -1,5 +1,5 @@
 """
-LocalML - Feature API Endpoints
+Open ML Foundry - Feature API Endpoints
 Complete implementation of all 20 features
 """
 

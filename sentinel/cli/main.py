@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LocalML finetune CLI
+Open ML Foundry CLI
 Command-line interface for model management and training
 """
 
@@ -18,7 +18,7 @@ from sentinel.cli.commands import model_group, dataset_group, train_group
 @click.version_option(version="0.1.0")
 def cli():
     """
-    LocalML finetune CLI
+    Open ML Foundry CLI
 
     Fast local fine-tuning with built-in models (FasterRCNN, CNN, CLIP)
 

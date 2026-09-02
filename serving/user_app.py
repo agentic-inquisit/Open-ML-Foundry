@@ -1,5 +1,5 @@
 """
-LocalML finetune - User Application
+Open ML Foundry - User Application
 Separate domain: app.example.com or localhost:8000
 Only user features, no admin functionality accessible
 """
@@ -45,7 +45,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 app = FastAPI(
-    title="LocalML finetune - User App",
+    title="Open ML Foundry - User App",
     description="User-facing application (separate domain from admin)"
 )
 

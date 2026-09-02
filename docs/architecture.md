@@ -2,7 +2,7 @@
 
 ## Overview
 
-LocalML finetune is a modular, local-first fine-tuning framework composed of four core layers:
+Open ML Foundry is a modular, local-first fine-tuning framework composed of four core layers:
 
 ```
 ┌──────────────────────────────────────┐

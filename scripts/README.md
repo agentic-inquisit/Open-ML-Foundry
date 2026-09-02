@@ -80,7 +80,7 @@ Next steps:
 
 **Output:**
 ```
-🧪 Running LocalML finetune Test Suite
+🧪 Running Open ML Foundry Test Suite
 
 📋 Test Configuration:
   Module: All
@@ -131,7 +131,7 @@ Next steps:
 
 **Output:**
 ```
-🔍 Running LocalML finetune Linters
+🔍 Running Open ML Foundry Linters
 
 📝 Running Black (code formatter)...
   ✓ Code formatting: OK
@@ -191,7 +191,7 @@ Next steps:
 
 **Output:**
 ```
-⚡ Running LocalML finetune Benchmarks
+⚡ Running Open ML Foundry Benchmarks
 
 📊 Benchmark Configuration:
   Model: resnet50
@@ -242,7 +242,7 @@ Next steps:
 
 **Output:**
 ```
-📚 Building LocalML finetune Documentation
+📚 Building Open ML Foundry Documentation
 
 📋 Documentation Configuration:
   Format: html

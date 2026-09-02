@@ -4,11 +4,11 @@
 
 **Do not open public issues for security vulnerabilities.**
 
-If you discover a security vulnerability in LocalML finetune, please report it to the maintainers privately.
+If you discover a security vulnerability in Open ML Foundry, please report it to the maintainers privately.
 
 ### How to Report
 
-**Email**: [security@example.com]
+**Email**: [productspace@proton.me]
 
 Include:
 - Description of the vulnerability
@@ -174,8 +174,8 @@ We follow responsible disclosure practices:
 
 ## Security Contacts
 
-- **General security questions**: [security@example.com]
-- **Vulnerability reports**: [security@example.com]
+- **General security questions**: [productspace@proton.me]
+- **Vulnerability reports**: [productspace@proton.me]
 - **Maintainers**: See [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## FAQ
@@ -184,7 +184,7 @@ We follow responsible disclosure practices:
 A: The code is production-capable, but requires proper deployment and configuration for sensitive data.
 
 **Q: How do I report a vulnerability?**
-A: Email security@example.com with details. Never open a public issue.
+A: Email productspace@proton.me with details. Never open a public issue.
 
 **Q: What's your update policy?**
 A: We aim to patch critical vulnerabilities within 1 week.
@@ -197,4 +197,4 @@ A: Yes, we monitor security advisories and update regularly.
 
 ---
 
-Thank you for helping keep LocalML finetune secure! 🔒
+Thank you for helping keep Open ML Foundry secure! 🔒

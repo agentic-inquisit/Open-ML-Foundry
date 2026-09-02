@@ -1,6 +1,6 @@
-# LocalML finetune Documentation
+# Open ML Foundry Documentation
 
-Welcome to **LocalML finetune** — a local fine-tuning framework for edge ML with privacy-first design.
+Welcome to **Open ML Foundry** — a local fine-tuning framework for edge ML with privacy-first design.
 
 ## Quick Navigation
 

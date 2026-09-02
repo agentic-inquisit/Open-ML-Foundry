@@ -20,7 +20,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from edge.jax_train import run_inference
 from edge.preprocess import run_pipeline
 
-app = FastAPI(title="LocalML finetune")
+app = FastAPI(title="Open ML Foundry")
 
 # CORS for frontend integration
 app.add_middleware(

@@ -1,6 +1,6 @@
 version: '3.8'
 
-# Docker Compose Example: Complete LocalML finetune Stack
+# Docker Compose Example: Complete Open ML Foundry Stack
 #
 # This example shows how to run all Sentinel services together:
 # - API server (port 8000)
@@ -114,7 +114,7 @@ services:
     image: dpage/pgadmin4:latest
     container_name: sentinel-pgadmin-example
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_EMAIL: productspace@proton.me
       PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"

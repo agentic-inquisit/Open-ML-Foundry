@@ -1,4 +1,4 @@
-# LocalML finetune
+# Open ML Foundry
 
 > **Open-source stack to fine-tune models locally, accelerate edge deployments**
 
@@ -27,7 +27,7 @@ Production-ready framework for local model fine-tuning with privacy-first design
 
 ## 📊 Comparison with Existing Tools
 
-| Feature | LocalML | Hugging Face | PyTorch Lightning | FastAI |
+| Feature | Open ML Foundry | Hugging Face | PyTorch Lightning | FastAI |
 |---------|---------|--------------|-------------------|--------|
 | **Local fine-tuning** | ✅ | ⚠️ (local but slow) | ✅ | ✅ |
 | **Model import UI** | ❌ | ✅ (web) | ❌ | ❌ |
@@ -40,7 +40,7 @@ Production-ready framework for local model fine-tuning with privacy-first design
 | **Latency (inference)** | 8-10ms | 50-100ms | Variable | 20-40ms |
 
 **TL;DR:**
-- **Choose LocalML if:** You need fast local fine-tuning + edge deployment + no cloud
+- **Choose Open ML Foundry if:** You need fast local fine-tuning + edge deployment + no cloud
 - **Choose Hugging Face if:** You want 200k pretrained models + web UI
 - **Choose FastAI if:** You want simplicity + learning
 
@@ -96,7 +96,7 @@ Start experimenting with **built-in models immediately** — no setup needed bey
 
 ### 1. Clone & Setup
 ```bash
-git clone https://github.com/agentic-inquisit/localml-finetune.git
+git clone https://github.com/agentic-inquisit/open-ml-foundry.git
 cd sentinel-cloud-vision-upd
 
 # Run setup script (checks dependencies, creates venv, installs)

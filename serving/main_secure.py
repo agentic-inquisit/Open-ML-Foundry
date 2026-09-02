@@ -1,5 +1,5 @@
 """
-LocalML finetune - Secure Main Server with RBAC
+Open ML Foundry - Secure Main Server with RBAC
 Implements role-based access control separating admin and user functionality
 """
 
@@ -47,7 +47,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = 7
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
-app = FastAPI(title="LocalML finetune - Secure")
+app = FastAPI(title="Open ML Foundry - Secure")
 
 # ============================================================================
 # CORS - Restrict to specific domains

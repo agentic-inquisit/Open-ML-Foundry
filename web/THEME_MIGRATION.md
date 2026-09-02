@@ -1,4 +1,4 @@
-# Frontend Theme Migration - LocalML finetune
+# Frontend Theme Migration - Open ML Foundry
 
 **Date**: 2026-08-21  
 **Status**: Complete  
@@ -8,7 +8,7 @@
 
 ## Overview
 
-The LocalML finetune frontend has been migrated to a modern, professional theme system with:
+The Open ML Foundry frontend has been migrated to a modern, professional theme system with:
 - ✅ Comprehensive CSS framework (globals.css)
 - ✅ Component-specific styles (theme.css)
 - ✅ Light & Dark mode support

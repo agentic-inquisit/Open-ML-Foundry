@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="localml-finetune",
+    name="open-ml-foundry",
     version="0.3.0",
-    description="Open-source stack to fine-tune models locally, accelerate edge deployments",
-    author="LocalML Team",
+    description="Open ML Foundry: Open-source stack to fine-tune models locally, accelerate edge deployments",
+    author="Open ML Foundry Contributors",
     license="MIT",
     packages=find_packages(),
     install_requires=[
@@ -13,8 +13,8 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "localml=sentinel.cli.main:cli",
-            "localml-finetune=sentinel.cli.main:cli",
+            "foundry=sentinel.cli.main:cli",
+            "omlf=sentinel.cli.main:cli",
         ],
     },
     python_requires=">=3.8",

@@ -3,7 +3,7 @@
 ## General
 
 **Q: Is my data sent anywhere?**
-A: No. LocalML finetune is completely local. All data stays on your machine. No cloud services, no telemetry, no external API calls.
+A: No. Open ML Foundry is completely local. All data stays on your machine. No cloud services, no telemetry, no external API calls.
 
 **Q: Can I use this offline?**
 A: Yes, after importing models. Models download on first import, then work offline forever.
@@ -217,13 +217,13 @@ A: Not yet. Currently supports PyTorch models.
 ## Support
 
 **Q: Where do I report bugs?**
-A: GitHub Issues: https://github.com/agentic-inquisit/localml-finetune/issues
+A: GitHub Issues: https://github.com/agentic-inquisit/open-ml-foundry/issues
 
 **Q: How do I contribute?**
 A: See CONTRIBUTING.md in repo
 
 **Q: Is there a community forum?**
-A: GitHub Discussions: https://github.com/agentic-inquisit/localml-finetune/discussions
+A: GitHub Discussions: https://github.com/agentic-inquisit/open-ml-foundry/discussions
 
 **Q: How often is this maintained?**
 A: Active development. Updates monthly with bug fixes and features.

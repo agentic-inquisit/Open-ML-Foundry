@@ -1,6 +1,6 @@
 # Components Overview
 
-LocalML finetune consists of 9 major components working together.
+Open ML Foundry consists of 9 major components working together.
 
 ## System Architecture
 

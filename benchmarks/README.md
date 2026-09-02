@@ -1,6 +1,6 @@
 # Benchmarking & Performance
 
-Systematic benchmarking suite for LocalML finetune.
+Systematic benchmarking suite for Open ML Foundry.
 
 ## Directory Structure
 

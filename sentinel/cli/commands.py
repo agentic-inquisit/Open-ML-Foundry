@@ -1,5 +1,5 @@
 """
-CLI Commands for LocalML finetune
+CLI Commands for Open ML Foundry
 """
 
 import click
@@ -433,7 +433,7 @@ def train_list(status, limit):
 def examples():
     """Show usage examples"""
     click.echo("""
-    LocalML finetune - CLI Examples
+    Open ML Foundry - CLI Examples
 
     1. List available models:
        sentinel model list

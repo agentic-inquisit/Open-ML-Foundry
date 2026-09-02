@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-LocalML finetune Benchmarking Suite
+Open ML Foundry Benchmarking Suite
 
 Systematic benchmarking for model inference, training, and optimization.
 """
@@ -195,7 +195,7 @@ class BenchmarkSuite:
             Combined results dictionary
         """
         print(f"\n{'='*60}")
-        print(f"LocalML finetune Benchmark Suite")
+        print(f"Open ML Foundry Benchmark Suite")
         print(f"{'='*60}\n")
 
         bench = Benchmark(model, device)
@@ -255,7 +255,7 @@ class BenchmarkSuite:
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="LocalML finetune Benchmarking Suite")
+    parser = argparse.ArgumentParser(description="Open ML Foundry Benchmarking Suite")
     parser.add_argument("--model", default="resnet50", help="Model to benchmark")
     parser.add_argument("--device", default="cpu", choices=["cpu", "cuda"], help="Device to use")
     parser.add_argument("--inference-runs", type=int, default=100, help="Inference benchmark runs")

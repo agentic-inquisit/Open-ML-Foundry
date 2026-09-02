@@ -1,4 +1,4 @@
-# Funding and sponsorship options for LocalML finetune
+# Funding and sponsorship options for Open ML Foundry
 
 # GitHub Sponsors
 github: agentic-inquisit
@@ -19,9 +19,9 @@ ko_fi: sentinelfinetune
 liberapay: sentinel-finetune
 
 # Issuehunt
-issuehunt: agentic-inquisit/localml-finetune
+issuehunt: agentic-inquisit/open-ml-foundry
 
 # Custom funding links
 custom:
   - "https://sentinel-finetune.dev/support"
-  - "https://github.com/agentic-inquisit/localml-finetune/blob/main/CONTRIBUTING.md"
+  - "https://github.com/agentic-inquisit/open-ml-foundry/blob/main/CONTRIBUTING.md"

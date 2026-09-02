@@ -1,6 +1,6 @@
 # Testing Infrastructure
 
-Comprehensive testing suite for LocalML finetune.
+Comprehensive testing suite for Open ML Foundry.
 
 ## Test Structure
 

@@ -1,4 +1,4 @@
-# LocalML finetune Examples
+# Open ML Foundry Examples
 
 Complete, working examples for different use cases.
 

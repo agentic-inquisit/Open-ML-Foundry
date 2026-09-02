@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
-    container_name: sentinel-api
+    container_name: foundry-api
     ports:
       - "8000:8000"
     environment:
@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.edge
-    container_name: sentinel-edge
+    container_name: foundry-edge
     ports:
       - "8001:8001"
     environment:

@@ -4313,7 +4313,7 @@ async def labeling_ui():
             <hr style="margin: 30px 0;">
             <div style="text-align: center; color: #666;">
                 <p>💡 Tip: Use keyboard shortcuts for faster labeling</p>
-                <small>Built with LocalML finetune</small>
+                <small>Built with Open ML Foundry</small>
             </div>
         </div>
 

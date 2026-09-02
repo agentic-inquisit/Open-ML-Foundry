@@ -19,7 +19,7 @@ pip install sentinel-finetune
 ### Option 2: Docker Compose
 
 ```bash
-git clone https://github.com/agentic-inquisit/localml-finetune.git
+git clone https://github.com/agentic-inquisit/open-ml-foundry.git
 cd sentinel-finetune
 docker-compose up
 ```

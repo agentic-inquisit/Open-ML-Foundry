@@ -226,3 +226,94 @@ htmlcov/
 .idea/workspace.xml
 *.iml
 .gradle
+
+# ════════════════════════════════════════════════════════════════
+# LocalML Finetune - Local Runtime & Development Files
+# ════════════════════════════════════════════════════════════════
+
+# Local configuration overrides (per-developer)
+.env.dev
+.env.test
+.env.prod
+config.local.yml
+config.local.yaml
+settings.local.py
+
+# LocalML-specific runtime directories
+edge/finetune_requests/
+edge/finetuned_models/
+edge/*.db
+edge/*.sqlite
+edge/*.sqlite3
+edge/cache/
+edge/logs/
+edge/inference_results/
+
+# Training outputs (local)
+training_outputs/
+checkpoints/
+model_exports/
+training_jobs/
+
+# Benchmark results (local runs)
+benchmarks/results/*.json
+benchmarks/results/*.csv
+benchmarks/results/*.txt
+
+# Model registry cache (local copies)
+.model_registry/
+model_cache/
+downloaded_models/
+
+# Dataset files (local)
+datasets/
+data_splits/
+local_datasets/
+training_data/
+validation_data/
+test_data/
+
+# Job tracking & logs
+jobs/
+job_logs/
+training_logs/
+inference_logs/
+system_logs/
+
+# Inference cache
+*.cache
+.inference_cache/
+model_predictions/
+batch_results/
+
+# Temporary development files
+.vscode/launch.json
+.vscode/tasks.json
+.vscode/extensions.json
+.idea/runConfigurations/
+
+# Local API data
+api_cache/
+temp_uploads/
+request_cache/
+
+# Docker-local volumes
+postgres_data/
+redis_data/
+pgadmin_data/
+mongodb_data/
+
+# Python development
+pip-selfcheck.json
+setuptools-*.json
+
+# Jupyter notebooks (local)
+*.ipynb_checkpoints
+.ipynb_checkpoints/
+*_test.ipynb
+
+# Lock files (except requirements.txt)
+poetry.lock
+Pipfile.lock
+yarn.lock
+package-lock.json

@@ -28,7 +28,7 @@ sentinel --version
 Clone and run:
 
 ```bash
-git clone https://github.com/agentic-inquisit/localml-finetune.git
+git clone https://github.com/agentic-inquisit/open-ml-foundry.git
 cd sentinel-finetune
 docker-compose up
 ```
@@ -38,7 +38,7 @@ Access API at `http://localhost:8000`
 ### 3. From Source (for Development)
 
 ```bash
-git clone https://github.com/agentic-inquisit/localml-finetune.git
+git clone https://github.com/agentic-inquisit/open-ml-foundry.git
 cd sentinel-finetune
 pip install -e ".[dev]"
 pre-commit install

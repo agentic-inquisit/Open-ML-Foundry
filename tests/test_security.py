@@ -205,7 +205,7 @@ def test_unauthenticated_cannot_access_admin_endpoint():
 def test_admin_can_access_admin_list_users_endpoint():
     """CRITICAL: Admin user SHOULD be able to list users"""
     # Create admin user directly in database
-    db.add_user("admin", hash_password("AdminPass123!"), "admin@example.com", RoleEnum.ADMIN)
+    db.add_user("admin", hash_password("AdminPass123!"), "productspace@proton.me", RoleEnum.ADMIN)
 
     # Login as admin
     login_response = client.post(
@@ -282,8 +282,8 @@ def test_user_cannot_promote_to_admin():
 def test_admin_can_promote_to_admin():
     """Admin SHOULD be able to promote users"""
     # Create admin and regular user
-    db.add_user("admin", hash_password("AdminPass123!"), "admin@example.com", RoleEnum.ADMIN)
-    db.add_user("alice", hash_password("AlicePass123!"), "alice@example.com", RoleEnum.USER)
+    db.add_user("admin", hash_password("AdminPass123!"), "productspace@proton.me", RoleEnum.ADMIN)
+    db.add_user("alice", hash_password("AlicePass123!"), "productspace@proton.me", RoleEnum.USER)
 
     # Login as admin
     login_response = client.post(
@@ -306,8 +306,8 @@ def test_admin_can_promote_to_admin():
 def test_admin_can_delete_user():
     """Admin SHOULD be able to delete users"""
     # Create admin and regular user
-    db.add_user("admin", hash_password("AdminPass123!"), "admin@example.com", RoleEnum.ADMIN)
-    db.add_user("alice", hash_password("AlicePass123!"), "alice@example.com", RoleEnum.USER)
+    db.add_user("admin", hash_password("AdminPass123!"), "productspace@proton.me", RoleEnum.ADMIN)
+    db.add_user("alice", hash_password("AlicePass123!"), "productspace@proton.me", RoleEnum.USER)
 
     # Login as admin
     login_response = client.post(
@@ -329,8 +329,8 @@ def test_admin_can_delete_user():
 def test_user_cannot_delete_other_users():
     """User should NOT be able to delete other users"""
     # Create two regular users
-    db.add_user("alice", hash_password("AlicePass123!"), "alice@example.com", RoleEnum.USER)
-    db.add_user("bob", hash_password("BobPass123!"), "bob@example.com", RoleEnum.USER)
+    db.add_user("alice", hash_password("AlicePass123!"), "productspace@proton.me", RoleEnum.USER)
+    db.add_user("bob", hash_password("BobPass123!"), "productspace@proton.me", RoleEnum.USER)
 
     # Login as alice
     login_response = client.post(
@@ -354,7 +354,7 @@ def test_user_cannot_delete_other_users():
 def test_admin_action_creates_audit_log_entry():
     """Admin actions should be logged"""
     # Create admin
-    db.add_user("admin", hash_password("AdminPass123!"), "admin@example.com", RoleEnum.ADMIN)
+    db.add_user("admin", hash_password("AdminPass123!"), "productspace@proton.me", RoleEnum.ADMIN)
 
     # Login
     login_response = client.post(
@@ -382,8 +382,8 @@ def test_admin_action_creates_audit_log_entry():
 
 def test_user_promotion_audit_logged():
     """User promotion should be logged"""
-    db.add_user("admin", hash_password("AdminPass123!"), "admin@example.com", RoleEnum.ADMIN)
-    db.add_user("alice", hash_password("AlicePass123!"), "alice@example.com", RoleEnum.USER)
+    db.add_user("admin", hash_password("AdminPass123!"), "productspace@proton.me", RoleEnum.ADMIN)
+    db.add_user("alice", hash_password("AlicePass123!"), "productspace@proton.me", RoleEnum.USER)
 
     login_response = client.post(
         "/auth/login",
@@ -416,7 +416,7 @@ def test_token_includes_role_claim():
     """Token should include role information"""
     import jwt
 
-    db.add_user("admin", hash_password("AdminPass123!"), "admin@example.com", RoleEnum.ADMIN)
+    db.add_user("admin", hash_password("AdminPass123!"), "productspace@proton.me", RoleEnum.ADMIN)
 
     response = client.post(
         "/auth/login",
@@ -433,7 +433,7 @@ def test_token_includes_role_claim():
 
 def test_token_signature_validation():
     """Token with modified payload should be rejected"""
-    db.add_user("alice", hash_password("AlicePass123!"), "alice@example.com", RoleEnum.USER)
+    db.add_user("alice", hash_password("AlicePass123!"), "productspace@proton.me", RoleEnum.USER)
 
     response = client.post(
         "/auth/login",
@@ -492,7 +492,7 @@ def test_password_verification_works():
 
 def test_admin_cannot_delete_self():
     """Admin should not be able to delete their own account"""
-    db.add_user("admin", hash_password("AdminPass123!"), "admin@example.com", RoleEnum.ADMIN)
+    db.add_user("admin", hash_password("AdminPass123!"), "productspace@proton.me", RoleEnum.ADMIN)
 
     login_response = client.post(
         "/auth/login",
