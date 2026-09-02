@@ -212,6 +212,10 @@ yarn-error.log
 .generated/
 *.generated.py
 
+# Reserved/Internal documentation
+.reserve/
+.reservesentinel-cloud-vision-upd/
+
 # Test outputs
 test-results/
 test-reports/

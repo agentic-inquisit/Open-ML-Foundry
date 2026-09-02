@@ -27,22 +27,26 @@ Production-ready framework for local model fine-tuning with privacy-first design
 
 ## 📊 Comparison with Existing Tools
 
-| Feature | Open ML Foundry | Hugging Face | PyTorch Lightning | FastAI |
-|---------|---------|--------------|-------------------|--------|
-| **Local fine-tuning** | ✅ | ⚠️ (local but slow) | ✅ | ✅ |
-| **Model import UI** | ❌ | ✅ (web) | ❌ | ❌ |
-| **Edge deployment** | ✅ (TFLite/ONNX) | ❌ | ❌ | ⚠️ |
-| **XLA optimization** | ✅ (30%+ speedup) | ❌ | ❌ | ❌ |
-| **Model versioning** | ✅ (auto-versioning) | ✅ (Hub) | ❌ | ❌ |
-| **No cloud required** | ✅ | ❌ | ✅ | ✅ |
-| **Pretrained models** | ⚠️ (detection/embedding only) | ✅ (200k+) | ❌ | ✅ |
-| **Ease of use** | ⚠️ (API-first) | ✅ | ⚠️ | ✅ |
-| **Latency (inference)** | 8-10ms | 50-100ms | Variable | 20-40ms |
+| Feature | Open ML Foundry | Unsloth | Hugging Face | PyTorch Lightning | FastAI |
+|---------|---------|---------|--------------|-------------------|--------|
+| **Local fine-tuning** | ✅ Full | ✅ Speed | ⚠️ (slow) | ✅ | ✅ |
+| **Training speed** | ✅ (30%+ XLA) | ✅⭐ (2-5x) | ⚠️ Baseline | ✅ | ✅ |
+| **Edge deployment** | ✅ Native | ❌ | ❌ | ❌ | ⚠️ |
+| **Model import UI** | ❌ | ❌ | ✅ (web) | ❌ | ❌ |
+| **Multi-infra training** | ⚠️ (v0.5) | ❌ | ❌ | ✅ | ❌ |
+| **Model versioning** | ✅ Auto | ❌ | ✅ (Hub) | ❌ | ❌ |
+| **No cloud required** | ✅ | ✅ | ❌ | ✅ | ✅ |
+| **Pretrained models** | ⚠️ Limited | ❌ | ✅ (200k+) | ❌ | ✅ |
+| **Ease of use** | ⚠️ API-first | ⭐ Simple | ✅ | ⚠️ | ✅ |
+| **Inference latency** | 8-10ms | Fast | 50-100ms | Variable | 20-40ms |
+| **Production-ready** | ✅ | ⚠️ (training focus) | ✅ | ✅ | ✅ |
 
-**TL;DR:**
-- **Choose Open ML Foundry if:** You need fast local fine-tuning + edge deployment + no cloud
-- **Choose Hugging Face if:** You want 200k pretrained models + web UI
-- **Choose FastAI if:** You want simplicity + learning
+**TL;DR - Choose based on your use case:**
+- **Unsloth if:** You want the FASTEST training speed (2-5x improvement)
+- **Open ML Foundry if:** You need fast local fine-tuning + edge deployment + unified multi-infra
+- **Hugging Face if:** You want 200k pretrained models + web UI
+- **PyTorch Lightning if:** You need distributed training framework
+- **FastAI if:** You're learning or want simplicity
 
 ---
 
