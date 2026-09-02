@@ -92,8 +92,6 @@ Start experimenting with **built-in models immediately** — no setup needed bey
    - Role-based access
    - Production hardening
 
-**Deep technical docs archived in [`.reserve/`](.reserve/MANIFEST.md)** — available if you need implementation details, architectural alternatives, or internal development history.
-
 ---
 
 ## 🚀 Get Started (5 Minutes)
