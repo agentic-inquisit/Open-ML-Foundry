@@ -6,13 +6,23 @@ from torchvision.transforms import functional as F
 import numpy as np
 import time
 import os
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import sys
+import asyncio
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, BackgroundTasks
 from fastapi.responses import StreamingResponse, HTMLResponse, Response
 import base64
 import io
 import qrcode
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, Form
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from mlops.event_ingestion import ingest_frame, check_connection as check_milvus_connection
+    EVENT_INGESTION_AVAILABLE = True
+except ImportError:
+    EVENT_INGESTION_AVAILABLE = False
+    print("Warning: mlops.event_ingestion not available. Frame embedding/search disabled.")
 from fastapi.responses import StreamingResponse, HTMLResponse, Response
 import base64
 import io
@@ -221,6 +231,13 @@ async def startup_event():
     global mobile_source
     # DO NOT auto-initialize camera stream - only on explicit request
     mobile_source = MobileFrameSource()
+
+    if EVENT_INGESTION_AVAILABLE:
+        # Fire-and-forget: probes Milvus with a bounded timeout and warns on
+        # failure, but never awaited here, so it cannot delay or block startup.
+        # run_in_executor (not asyncio.to_thread, which needs 3.9+) for Python 3.8 compat.
+        loop = asyncio.get_event_loop()
+        loop.run_in_executor(None, check_milvus_connection)
     # Ensure finetune storage directory exists
     FINETUNE_DIR = Path("finetuned_models")
     FINETUNE_DIR.mkdir(exist_ok=True)
@@ -1075,7 +1092,7 @@ async def detect_dashboard():
     """
 
 @app.get("/detect")
-async def detect_objects(filter_classes: str = ""):
+async def detect_objects(background_tasks: BackgroundTasks, filter_classes: str = ""):
     """
     Capture frame and return detection results.
     Requires prior permission via POST /camera/request-permission
@@ -1130,10 +1147,14 @@ async def detect_objects(filter_classes: str = ""):
     # Encode frame as base64
     _, buffer = cv2.imencode('.jpg', frame)
     frame_b64 = base64.b64encode(buffer).decode('utf-8')
+    detections_payload = [{"label": label, "score": round(score, 3), "box": box} for label, score, box in results]
+
+    if EVENT_INGESTION_AVAILABLE:
+        background_tasks.add_task(ingest_frame, buffer.tobytes(), source_type, detections_payload)
 
     return {
         "model": "FasterRCNN ResNet50 FPN (COCO pretrained)",
-        "detections": [{"label": label, "score": round(score, 3), "box": box} for label, score, box in results],
+        "detections": detections_payload,
         "detection_count": len(results),
         "latency_ms": round(latency * 1000, 2),
         "frame_encoded": frame_b64,
@@ -1168,9 +1189,9 @@ async def finetune_config():
 
 @app.post("/finetune")
 async def finetune_model(
-    dataset: UploadFile = File(...),
+    dataset: List[UploadFile] = File(...),
     target_object: str = Form(...),
-    num_classes: int = Form(default=10),
+    num_classes: Optional[int] = Form(default=None),
     image_size: int = Form(default=224),
     epochs: int = Form(default=5),
     batch_size: int = Form(default=4),
@@ -1183,37 +1204,61 @@ async def finetune_model(
     """
     Finetune a JAX model with validation, early stopping, and checkpointing.
 
+    All uploaded images are treated as examples of a single class
+    (target_object) — this endpoint predates multi-class dataset support.
+    For a real multi-class classifier, build the dataset with
+    core/dataset_store.py and use the session API (/api/v1/sessions) instead,
+    which accepts a directory of per-class subfolders.
+
     Args:
-        dataset: Image file to fine-tune on
-        target_object: Model name for this training run
-        num_classes: Number of output classes
+        dataset: Image files to fine-tune on (all treated as target_object)
+        target_object: Model name for this training run, and its class name
+        num_classes: Output classes. None (default) derives it from the
+            dataset actually loaded (1, since every uploaded image is the
+            same class here) — pass an explicit value only to force a
+            larger output layer.
         image_size: Target image dimension (28, 64, 128, 224, 512)
         epochs: Number of training epochs
         batch_size: Batch size per iteration
         enable_validation: Enable train/val split (80/20)
         validation_split: Fraction of data for validation
-        enable_early_stopping: Stop if val loss doesn't improve (requires user confirmation)
+        enable_early_stopping: Stop if val loss doesn't improve
         patience: Epochs to wait before early stopping
-        checkpoint_interval: Save checkpoint every N epochs (0=no checkpoints)
+        checkpoint_interval: Save checkpoint every N epochs (0=no periodic checkpoints)
     """
     FINETUNE_COUNT.inc()
     if not JAX_AVAILABLE:
         return {"status": "error", "message": "JAX/Flax libraries not installed on server."}
 
-    contents = await dataset.read()
-
-    # === SAVE DATASET ARTIFACT ===
+    # === SAVE UPLOADED IMAGES AS A ONE-CLASS DATASET DIRECTORY ===
+    # edge.jax_train.run_finetuning expects dataset_dir/<class_name>/<images>;
+    # target_object is the only class this endpoint's upload shape can produce.
     FINETUNE_DIR = Path("finetuned_models")
     timestamp_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    dataset_filename = f"{timestamp_str}_{target_object}{Path(dataset.filename).suffix}"
-    dataset_path = FINETUNE_DIR / dataset_filename
-    # Store raw input data for reproducibility and audit trail
-    with open(dataset_path, "wb") as f:
-        f.write(contents)
+    dataset_dir = FINETUNE_DIR / f"{timestamp_str}_{target_object}_dataset" / target_object
+    dataset_dir.mkdir(parents=True, exist_ok=True)
+
+    for i, upload in enumerate(dataset):
+        contents = await upload.read()
+        suffix = Path(upload.filename).suffix or ".jpg"
+        (dataset_dir / f"{i:05d}{suffix}").write_bytes(contents)
+
+    # === TRACK THIS RUN THROUGH JobTracker TOO ===
+    # So `sentinel train status <job_id>` shows jobs launched from this
+    # legacy HTTP endpoint, not just ones started from the CLI.
+    from sentinel.cli.job_tracker import JobTracker, TrainingMetrics
+
+    job_id = f"{timestamp_str}_{target_object}"
+    tracker = JobTracker()
+    tracker.create_job(
+        job_id=job_id, model_name=target_object, dataset_path=str(dataset_dir.parent),
+        epochs=epochs, batch_size=batch_size, learning_rate=1e-3,
+    )
+    tracker.start_job(job_id)
 
     # === RUN GRAIN-BASED TRAINING WITH VALIDATION & CHECKPOINTING ===
     result = jax_train.run_finetuning(
-        contents,
+        dataset_dir=str(dataset_dir.parent),
         target_object=target_object,
         steps=epochs,
         batch_size=batch_size,
@@ -1226,6 +1271,27 @@ async def finetune_model(
         checkpoint_interval=checkpoint_interval,
         checkpoint_dir=str(FINETUNE_DIR)
     )
+    num_classes = result.get("num_classes", num_classes)
+
+    # run_finetuning() has no per-epoch callback — replay its real post-hoc
+    # history into JobTracker instead of leaving current_epoch/metrics empty.
+    if result.get("status") == "success":
+        train_losses = result.get("train_loss_history", [])
+        train_accs = result.get("train_acc_history", [])
+        val_losses = result.get("val_loss_history", [])
+        val_accs = result.get("val_acc_history", [])
+        for i in range(len(train_losses)):
+            tracker.add_metrics(job_id, TrainingMetrics(
+                epoch=i + 1,
+                loss=train_losses[i],
+                accuracy=train_accs[i] if i < len(train_accs) else 0.0,
+                val_loss=val_losses[i] if i < len(val_losses) else 0.0,
+                val_accuracy=val_accs[i] if i < len(val_accs) else 0.0,
+                timestamp=datetime.now().isoformat(),
+            ))
+        tracker.complete_job(job_id)
+    else:
+        tracker.fail_job(job_id, result.get("message", "Training failed"))
 
     # === REGISTER MODEL IN VERSIONING SYSTEM ===
     model_version_info = None
@@ -1234,7 +1300,7 @@ async def finetune_model(
             # Register new version (auto-increments)
             reg_result = REGISTRY.register_model(
                 model_name=target_object,
-                description=f"Trained on {len(train_labels) if 'train_labels' in locals() else '?'} images",
+                description=f"Trained on {result.get('train_images', '?')} images",
                 owner="system",
                 access_level="private"
             )
@@ -1258,13 +1324,13 @@ async def finetune_model(
 
             # Add dataset information
             REGISTRY.add_dataset_info(model_id, {
-                "total_images": len(labels_array) if 'labels_array' in locals() else 0,
-                "training_images": len(train_labels) if 'train_labels' in locals() else 0,
-                "validation_images": len(val_labels) if enable_validation and 'val_labels' in locals() else 0,
+                "total_images": result.get("total_images", 0),
+                "training_images": result.get("train_images", 0),
+                "validation_images": result.get("val_images", 0),
                 "test_images": 0,
-                "classes": list(range(num_classes)),
+                "classes": list(result.get("class_names", {}).values()) or list(range(num_classes)),
                 "class_distribution": {},
-                "data_source": "uploaded_image",
+                "data_source": str(dataset_dir.parent),
                 "preprocessing_steps": f"Resized to {image_size}×{image_size}, aspect-ratio preserved"
             })
 
@@ -1287,37 +1353,53 @@ async def finetune_model(
             print(f"⚠ Error registering model: {e}")
 
     # === SAVE MODEL CHECKPOINT ===
+    # jax_train.run_finetuning() already wrote real checkpoints under
+    # checkpoint_dir (periodic `{target_object}_epoch_NNN.ckpt` files, plus a
+    # `{target_object}_best.ckpt` when validation is enabled). Mirror the
+    # best one to the `{timestamp}_{target_object}_model.flax` name that
+    # /download-model/{model_id} looks up, so that endpoint keeps working.
     model_path = None
-    if result.get("status") == "success":
-        model_filename = f"{timestamp_str}_{target_object}_model.flax"
-        model_path = FINETUNE_DIR / model_filename
+    best_checkpoint = result.get("best_checkpoint")
+    if result.get("status") == "success" and best_checkpoint and Path(best_checkpoint).exists():
+        model_path = FINETUNE_DIR / f"{timestamp_str}_{target_object}_model.flax"
+        model_path.write_bytes(Path(best_checkpoint).read_bytes())
+        best_checkpoint_meta = Path(str(best_checkpoint) + ".meta.json")
+        if best_checkpoint_meta.exists():
+            Path(str(model_path) + ".meta.json").write_bytes(best_checkpoint_meta.read_bytes())
+        print(f"✓ Model checkpoint saved to: {model_path}")
 
-        # IMPROVED: Use Flax serialization for JAX params (replaces torch.save)
-        # Flax serialization handles:
-        # - JAX PyTree structures (nested dicts/tuples of arrays)
-        # - Efficient binary format compatible with JAX ecosystems
-        # - Safe to reload with flax.serialization.from_bytes()
-
-        # TODO: After training, serialize the final state:
-        # with open(model_path, 'wb') as f:
-        #     f.write(flax.serialization.to_bytes(final_state))
-
-        print(f"✓ Model checkpoint would be saved to: {model_path}")
-
-        # Register checkpoint in version
+        # Register every checkpoint jax_train.py actually wrote, at its real path.
         if REGISTRY_AVAILABLE and model_version_info:
             try:
-                for epoch in range(1, result.get("epochs_trained", 1) + 1):
+                checkpoint_dir_path = Path(result.get("checkpoint_dir", str(FINETUNE_DIR)))
+                epochs_trained = result.get("epochs_trained", 0)
+                best_epoch = result.get("best_epoch")
+
+                if checkpoint_interval > 0:
+                    for epoch in range(checkpoint_interval, epochs_trained + 1, checkpoint_interval):
+                        periodic_path = checkpoint_dir_path / f"{target_object}_epoch_{epoch:03d}.ckpt"
+                        if periodic_path.exists():
+                            REGISTRY.save_checkpoint(
+                                model_version_info["model_id"], epoch, str(periodic_path),
+                                train_loss=result.get("final_train_loss", 0),
+                                val_loss=result.get("best_val_loss", 0),
+                                is_best=(epoch == best_epoch),
+                            )
+
+                if best_epoch and best_epoch % max(checkpoint_interval, 1) != 0:
+                    # Best epoch didn't coincide with a periodic save — register
+                    # the separate best-checkpoint file too.
                     REGISTRY.save_checkpoint(
-                        model_version_info["model_id"],
-                        epoch,
-                        f"{model_path}_epoch_{epoch:03d}.ckpt",
+                        model_version_info["model_id"], best_epoch, str(best_checkpoint),
                         train_loss=result.get("final_train_loss", 0),
                         val_loss=result.get("best_val_loss", 0),
-                        is_best=(epoch == result.get("best_val_loss") or epoch == result.get("epochs_trained"))
+                        is_best=True,
                     )
             except Exception as e:
                 print(f"⚠ Error registering checkpoints: {e}")
+    elif result.get("status") == "success":
+        print("⚠ Training succeeded but no checkpoint file exists "
+              "(checkpoint_interval=0 and validation disabled)")
 
     # === SAVE TRAINING RESULTS METADATA ===
     # Store training metrics for analysis (loss history, training steps, etc.)
@@ -1332,23 +1414,23 @@ async def finetune_model(
     c = conn.cursor()
     c.execute(
         "INSERT INTO finetune_requests (target_object, dataset_path, result_path, model_path, timestamp) VALUES (?,?,?,?,?)",
-        (target_object, str(dataset_path), str(result_path), str(model_path) if model_path else None, timestamp_str)
+        (target_object, str(dataset_dir.parent), str(result_path), str(model_path) if model_path else None, timestamp_str)
     )
     conn.commit()
     conn.close()
 
     return {
         "target": target_object,
-        "dataset_saved": str(dataset_path),
+        "dataset_saved": str(dataset_dir.parent),
         "result_saved": str(result_path),
         "model_saved": str(model_path) if model_path else None,
         # Include Grain usage metadata for debugging/monitoring
         "using_grain": result.get("using_grain", False),
         # Training performance metrics
         "training_metrics": {
-            "final_loss": result.get("final_loss"),
-            "average_loss": result.get("average_loss"),
-            "total_steps": result.get("total_steps"),
+            "final_loss": result.get("final_train_loss"),
+            "average_loss": result.get("avg_train_loss"),
+            "epochs_trained": result.get("epochs_trained"),
             "samples_trained": result.get("samples_trained")
         },
         "download_url": f"http://localhost:8001/download-model/{timestamp_str}_{target_object}" if model_path else None,
@@ -3023,14 +3105,18 @@ async def models_list():
                     epoch = parts[i + 1]
                     break
 
-            # Try to get num_classes from JSON metadata if available
-            metadata_path = file_path.parent / f"{name}_metadata.json"
+            
+            metadata_path = file_path.parent / f"{file_path.name}.meta.json"
             num_classes = None
+            image_size = None
+            class_names = None
             if metadata_path.exists():
                 import json
                 with open(metadata_path) as f:
                     meta = json.load(f)
                     num_classes = meta.get("num_classes")
+                    image_size = meta.get("input_size")
+                    class_names = meta.get("class_names")
 
             models.append({
                 "name": file_path.name,
@@ -3041,7 +3127,13 @@ async def models_list():
                 "size_mb": size_mb,
                 "created_at": file_path.stat().st_mtime,
                 "num_classes": num_classes,
-                "is_best": "epoch_001" in name or "epoch_002" in name or "epoch_003" in name
+                "image_size": image_size,
+                "class_names": class_names,
+                # _save_checkpoint() writes the actual best checkpoint as a
+                # separate "<target_object>_best.ckpt" file (see
+                # edge/jax_train.py::run_finetuning) — that's the real signal,
+                # not any particular epoch number in the filename.
+                "is_best": name.endswith("_best")
             })
         except Exception as e:
             print(f"Error processing {file_path}: {e}")
@@ -3072,13 +3164,13 @@ async def inference_finetune(image: UploadFile = File(...),
     try:
         contents = await image.read()
 
-        # Initialize inference wrapper
-        # In production, would extract num_classes from model metadata
+        # num_classes/input_size here are just fallbacks — load_checkpoint()
+        # reads the checkpoint's own sidecar metadata and uses that instead
+        # when present.
         inference = jax_train.FinetuneInference(num_classes=10, input_size=224)
 
-        # Load checkpoint
         if not inference.load_checkpoint(model_path):
-            return {"status": "error", "message": "Failed to load checkpoint"}
+            return {"status": "error", "message": f"Failed to load checkpoint: {model_path}"}
 
         # Run inference
         result = inference.predict(contents, return_top_k=top_k)
@@ -4547,13 +4639,32 @@ async def labeling_upload_file(file: UploadFile = File(...)):
         lines = contents.decode('utf-8').strip().split('\n')
         labels = [line.strip() for line in lines if line.strip()]
 
-        # Get all labeled images and update their labels
-        # For now, this just confirms we received the labels
-        # In production, match labels to pending images by order
+        if not labels:
+            return {"status": "error", "message": "No labels found in file"}
+
+        # Match labels to pending images by order (get_unlabeled_images
+        # returns rows in insertion order, oldest first).
+        pending_images = labeling_service.get_unlabeled_images(limit=len(labels))
+        if not pending_images:
+            return {"status": "error", "message": "No pending images to label"}
+
+        applied = 0
+        for image, class_name in zip(pending_images, labels):
+            labeling_service.label_image(
+                image_id=image['id'], class_name=class_name, labeled_by="csv_upload"
+            )
+            applied += 1
+
+        skipped = len(labels) - applied
+        message = f"Applied {applied} label(s) to pending images"
+        if skipped > 0:
+            message += f"; {skipped} label(s) had no pending image left to match"
+
         return {
             "status": "success",
-            "message": f"Processed {len(labels)} labels",
-            "labels_count": len(labels)
+            "message": message,
+            "labels_count": len(labels),
+            "applied_count": applied
         }
     except Exception as e:
         return {"status": "error", "message": str(e)}
@@ -5484,11 +5595,11 @@ async def ab_testing_dashboard():
                         html += '</tbody></table>';
                     }
 
-                    if (winner !== 'no_results') {
-                        const winnerId = winner === 'A' ? summary.A?.total_requests : summary.B?.total_requests;
+                    if (winner === 'A' || winner === 'B') {
+                        const winnerModelId = winner === 'A' ? test.model_a_id : test.model_b_id;
                         html += `
                             <div style="margin-top: 20px;">
-                                <button class="btn-primary" onclick="promoteWinner(${testId}, ${winnerId === summary.A?.total_requests ? 'A' : 'B'})">
+                                <button class="btn-primary" onclick="promoteWinner(${testId}, ${winnerModelId}, '${winner}')">
                                     Promote Winner
                                 </button>
                             </div>
@@ -5503,9 +5614,27 @@ async def ab_testing_dashboard():
                 }
             }
 
-            async function promoteWinner(testId, modelLabel) {
-                // Get the actual model_id for promotion (simplified - use test_id as reference)
-                alert(`Promoted ${modelLabel} for test ${testId}`);
+            async function promoteWinner(testId, winnerModelId, modelLabel) {
+                if (!winnerModelId) {
+                    alert('No model id for the winner — cannot promote.');
+                    return;
+                }
+                try {
+                    const resp = await fetch(`/ab-test/promote/${testId}/${winnerModelId}`, {
+                        method: 'POST',
+                        body: new FormData()
+                    });
+                    const data = await resp.json();
+                    if (data.status === 'error') {
+                        alert(`Error: ${data.message}`);
+                        return;
+                    }
+                    alert(`Promoted Model ${modelLabel} (id ${winnerModelId}) for test ${testId}`);
+                    loadResults();
+                    loadHistory();
+                } catch (e) {
+                    alert(`Error: ${e.message}`);
+                }
             }
 
             async function loadHistory() {
@@ -6078,30 +6207,53 @@ async def model_validation_dashboard():
 
 @app.post("/validate-model/{model_id}")
 async def validate_model(model_id: int, num_folds: int = 5):
-    """Run pre-deployment validation with K-fold CV."""
+    """Run pre-deployment validation with K-fold CV"""
     if not VALIDATION_AVAILABLE:
         return {"status": "error", "message": "Validation service not available"}
 
     try:
-        # Get model info
-        model = REGISTRY.get_model_versions(None)  # Simplified - you'd look up by ID
-        if not model:
-            return {"status": "error", "message": "Model not found"}
+        model_name = REGISTRY.get_model_name(model_id)
+        if not model_name:
+            return {"status": "error", "message": f"Model {model_id} not found"}
 
-        # Placeholder for K-fold results (in real implementation, would load images and run CV)
-        kfold_result = {
-            "fold_results": [
-                {"train_loss": 0.45, "val_loss": 0.48, "accuracy": 0.92},
-                {"train_loss": 0.42, "val_loss": 0.47, "accuracy": 0.93},
-                {"train_loss": 0.46, "val_loss": 0.50, "accuracy": 0.91},
-                {"train_loss": 0.43, "val_loss": 0.49, "accuracy": 0.92},
-                {"train_loss": 0.44, "val_loss": 0.48, "accuracy": 0.93},
-            ],
-            "mean_accuracy": 0.922,
-            "std_accuracy": 0.008,
-            "ci_lower": 0.914,
-            "ci_upper": 0.930
-        }
+        model = next(
+            (v for v in REGISTRY.get_model_versions(model_name) if v["model_id"] == model_id),
+            None,
+        )
+        if not model:
+            return {"status": "error", "message": f"Model {model_id} not found"}
+
+        dataset_dir = model["dataset"].get("data_source")
+        num_classes = model["metadata"].get("num_classes")
+        image_size = model["metadata"].get("image_size") or 224
+
+        if not dataset_dir or not Path(dataset_dir).is_dir():
+            return {
+                "status": "error",
+                "message": (
+                    f"No training dataset directory on record for model {model_id} "
+                    f"(data_source={dataset_dir!r}) — cannot run K-fold CV without it"
+                ),
+            }
+        if not num_classes:
+            return {"status": "error", "message": f"Model {model_id} has no recorded num_classes"}
+
+        images, labels, _class_names = jax_train.load_raw_dataset(dataset_dir)
+        if len(images) < num_folds:
+            return {
+                "status": "error",
+                "message": (
+                    f"Need at least {num_folds} images for {num_folds}-fold CV, "
+                    f"found {len(images)} in {dataset_dir}"
+                ),
+            }
+
+        kfold_result = VALIDATION_SERVICE.kfold_cross_validation(
+            images=images, labels=labels, num_classes=num_classes,
+            image_size=image_size, num_folds=num_folds,
+        )
+        if kfold_result.get("status") == "error":
+            return kfold_result
 
         decision = VALIDATION_SERVICE.compare_validation_results(kfold_result, None)
 

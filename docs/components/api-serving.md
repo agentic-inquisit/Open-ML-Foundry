@@ -7,7 +7,6 @@ REST API endpoints for fine-tuning and model management.
 Located in `serving/` directory. Provides FastAPI-based REST API for:
 - Model training jobs
 - Inference requests
-- Admin operations
 - Feature management
 
 ## Components
@@ -40,22 +39,6 @@ POST /infer
 GET /infer/batch
 ```
 
-### admin_app.py — Admin Endpoints
-
-Administrative operations:
-
-```python
-# User management
-GET /admin/users
-POST /admin/users/create
-POST /admin/users/delete/{user_id}
-
-# System stats
-GET /admin/stats
-GET /admin/logs
-POST /admin/config/update
-```
-
 ### features_api.py — Feature Endpoints
 
 ML feature management:
@@ -71,28 +54,12 @@ GET /metrics/training
 GET /metrics/inference
 ```
 
-### handler.py — Request Handlers
-
-Utility functions for request processing:
-- Input validation
-- Error handling
-- Response formatting
-- Request logging
-
-### config.properties — Configuration
-
-Server configuration:
-- Port settings
-- Database connection
-- Authentication keys
-- Model paths
-
 ## Docker Deployment
 
 ### Building
 
 ```bash
-docker build -f serving/Dockerfile -t sentinel-api .
+docker build -f Dockerfile.api -t sentinel-api .
 ```
 
 ### Running

@@ -254,10 +254,10 @@ class ABTestingService:
                 top_conf = preds[0]["confidence"] if preds else 0.0
                 predictions = preds
         except Exception as e:
-            status = "mock"
-            top_pred = "MOCK"
-            top_conf = 0.5
-            predictions = [{"class_name": "MOCK", "confidence": 0.5}]
+            status = "error"
+            top_pred = "ERROR"
+            top_conf = 0.0
+            predictions = [{"error": str(e)}]
             latency = 0.0
 
         # Store result
@@ -486,7 +486,9 @@ class ABTestingService:
                 "deployment_env": test["deployment_env"],
                 "owner": test["owner"],
                 "created_at": test["created_at"],
-                "status": test["status"]
+                "status": test["status"],
+                "model_a_id": test["model_a_id"],
+                "model_b_id": test["model_b_id"]
             },
             "summary": summary,
             "per_image": per_image,
@@ -507,7 +509,7 @@ class ABTestingService:
             UPDATE ab_tests
             SET status = 'completed', winner_model_id = ?, completed_at = ?
             WHERE id = ?
-        """, ('completed', datetime.now().isoformat(), test_id))
+        """, (winner_model_id, datetime.now().isoformat(), test_id))
 
         conn.commit()
         conn.close()

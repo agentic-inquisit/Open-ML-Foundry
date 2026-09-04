@@ -4,9 +4,24 @@ Handles K-fold cross-validation, parameter tracking, and rollback capability
 """
 
 import json
+import tempfile
 import numpy as np
+from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 from datetime import datetime
+
+
+def _write_class_folder_dataset(images: List[bytes], labels: List[int], base_dir: str) -> Path:
+    """Write an in-memory (images, labels) pair out as a
+    dataset_dir/<label>/<i>.jpg tree — the layout edge.jax_train.run_finetuning
+    expects. Used to bridge callers (like K-fold CV) that already hold real
+    image bytes and labels in memory rather than on disk."""
+    root = Path(base_dir)
+    for i, (img_bytes, label) in enumerate(zip(images, labels)):
+        class_dir = root / str(int(label))
+        class_dir.mkdir(parents=True, exist_ok=True)
+        (class_dir / f"{i:05d}.jpg").write_bytes(img_bytes)
+    return root
 
 
 class ValidationService:
@@ -81,40 +96,48 @@ class ValidationService:
             val_labels = np.array([labels[i] for i in val_indices])
 
             try:
-                # Train on fold
-                if not hasattr(self.jax_train, 'run_finetuning'):
-                    # Fallback for mock/unavailable JAX
-                    fold_result = {
-                        "train_loss": 0.5 - (fold_num * 0.05),
-                        "val_loss": 0.52 - (fold_num * 0.05),
-                        "accuracy": 0.85 + (fold_num * 0.01)
-                    }
-                else:
+                # Train on fold — jax_train_module is only ever handed to this
+                # service when JAX/Flax actually imported (see vision_module.py's
+                # JAX_AVAILABLE gate), so run_finetuning is always present here.
+                fold_kwargs = {k: v for k, v in training_kwargs.items() if k != "checkpoint_dir"}
+                with tempfile.TemporaryDirectory(prefix="cv_fold_") as tmp_dir:
+                    fold_dataset_dir = _write_class_folder_dataset(train_images, train_labels, tmp_dir)
                     training_result = self.jax_train.run_finetuning(
-                        image_bytes=train_images,
-                        target_object="cv_fold",
+                        dataset_dir=str(fold_dataset_dir),
+                        target_object=f"cv_fold_{fold_num}",
                         steps=epochs,
                         batch_size=batch_size,
                         num_classes=num_classes,
                         image_size=image_size,
-                        labels=train_labels,
                         enable_validation=True,
                         validation_split=0.2,
-                        **training_kwargs
+                        checkpoint_dir=tmp_dir,
+                        **fold_kwargs
                     )
 
-                    # Evaluate on fold
+                    if training_result.get("status") == "error":
+                        return {
+                            "status": "error",
+                            "message": f"Error in fold {fold_num + 1}: {training_result.get('message')}",
+                        }
+
                     fold_accuracy = self._evaluate_fold(
                         val_images, val_labels,
                         training_result.get("best_checkpoint"),
                         num_classes, image_size
                     )
+                    if fold_accuracy is None:
+                        return {
+                            "status": "error",
+                            "message": f"Fold {fold_num + 1}: could not evaluate checkpoint "
+                                       f"{training_result.get('best_checkpoint')}",
+                        }
 
-                    fold_result = {
-                        "train_loss": training_result.get("final_train_loss", 0.0),
-                        "val_loss": training_result.get("best_val_loss", 0.0),
-                        "accuracy": fold_accuracy
-                    }
+                fold_result = {
+                    "train_loss": training_result.get("final_train_loss", 0.0),
+                    "val_loss": training_result.get("best_val_loss", 0.0),
+                    "accuracy": fold_accuracy
+                }
 
                 fold_results.append(fold_result)
 
@@ -125,9 +148,9 @@ class ValidationService:
                 }
 
         # Compute statistics
-        accuracies = [f["accuracy"] for f in fold_results if f.get("accuracy")]
-        train_losses = [f["train_loss"] for f in fold_results if f.get("train_loss")]
-        val_losses = [f["val_loss"] for f in fold_results if f.get("val_loss")]
+        accuracies = [f["accuracy"] for f in fold_results if f.get("accuracy") is not None]
+        train_losses = [f["train_loss"] for f in fold_results if f.get("train_loss") is not None]
+        val_losses = [f["val_loss"] for f in fold_results if f.get("val_loss") is not None]
 
         if not accuracies:
             return {"status": "error", "message": "No valid fold results"}
@@ -150,32 +173,30 @@ class ValidationService:
         }
 
     def _evaluate_fold(self, images: List[bytes], labels: np.ndarray,
-                       checkpoint_path: str, num_classes: int,
-                       image_size: int) -> float:
-        """Evaluate a checkpoint on fold validation set."""
-        try:
-            if not hasattr(self.jax_train, 'FinetuneInference'):
-                return 0.85  # Mock
+                       checkpoint_path: Optional[str], num_classes: int,
+                       image_size: int) -> Optional[float]:
+        """Evaluate a checkpoint on fold validation set. Returns None (not a
+        fabricated number) if there's no checkpoint to evaluate or loading it
+        fails — callers must treat None as "could not evaluate this fold"."""
+        if not checkpoint_path or not images:
+            return None
 
-            inference = self.jax_train.FinetuneInference(
-                num_classes=num_classes, input_size=image_size
-            )
-            inference.load_checkpoint(checkpoint_path)
+        inference = self.jax_train.FinetuneInference(
+            num_classes=num_classes, input_size=image_size
+        )
+        if not inference.load_checkpoint(checkpoint_path):
+            return None
 
-            correct = 0
-            for img_bytes, true_label in zip(images, labels):
-                result = inference.predict(img_bytes, return_top_k=1)
-                predictions = result.get("predictions", [])
-                if predictions:
-                    pred_idx = predictions[0].get("class_index", -1)
-                    if pred_idx == true_label:
-                        correct += 1
+        correct = 0
+        for img_bytes, true_label in zip(images, labels):
+            result = inference.predict(img_bytes, return_top_k=1)
+            predictions = result.get("predictions", [])
+            if predictions:
+                pred_idx = predictions[0].get("class_index", -1)
+                if pred_idx == true_label:
+                    correct += 1
 
-            return correct / len(images) if images else 0.0
-
-        except Exception as e:
-            # Default accuracy if inference fails
-            return 0.75
+        return correct / len(images)
 
     def track_parameter_changes(
         self,

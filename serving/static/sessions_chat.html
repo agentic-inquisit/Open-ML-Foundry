@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Open ML Foundry — Sessions</title>
+<link rel="icon" type="image/png" href="/favicon.ico">
+<style>
+  :root {
+    --bg: #0f1117; --panel: #161923; --panel-2: #1e2230; --border: #2a2f40;
+    --text: #e6e8ee; --muted: #8b90a3; --accent: #6d7fff; --user: #2a3a5c;
+    --assistant: #1e2230; --system: #262b3d; --error: #5c2a2a; --success: #2a5c3a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: var(--bg); color: var(--text); height: 100vh; display: flex; }
+
+  /* Sidebar */
+  #sidebar { width: 280px; background: var(--panel); border-right: 1px solid var(--border);
+             display: flex; flex-direction: column; }
+  #sidebar-logo { padding: 16px; margin: 0; border-bottom: 1px solid var(--border); }
+  #sidebar-logo img { display: block; width: 100%; background: #fff; border-radius: 6px; padding: 6px 10px; }
+  #new-session-btn { margin: 12px; padding: 10px; background: var(--accent); color: white;
+                      border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+  #session-list { flex: 1; overflow-y: auto; padding: 0 8px; }
+  .session-item { padding: 10px 12px; border-radius: 8px; margin-bottom: 4px; cursor: pointer;
+                   font-size: 13px; }
+  .session-item:hover { background: var(--panel-2); }
+  .session-item.active { background: var(--panel-2); border: 1px solid var(--accent); }
+  .session-item .name { font-weight: 600; }
+  .session-item .meta { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .status-badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px;
+                   text-transform: uppercase; }
+  .status-idle { background: #333; } .status-training { background: #5c4a2a; }
+  .status-completed { background: var(--success); } .status-error { background: var(--error); }
+
+  /* Main */
+  #main { flex: 1; display: flex; flex-direction: column; }
+  #chat-header { padding: 16px 24px; border-bottom: 1px solid var(--border);
+                 display: flex; justify-content: space-between; align-items: center; }
+  #chat-header .title { font-weight: 600; }
+  #chat-header .subtitle { color: var(--muted); font-size: 12px; }
+  #transcript { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .bubble { max-width: 70%; padding: 12px 16px; border-radius: 12px; font-size: 13px; line-height: 1.5; }
+  .bubble.user { align-self: flex-end; background: var(--user); }
+  .bubble.assistant { align-self: flex-start; background: var(--assistant); border: 1px solid var(--border); }
+  .bubble.system { align-self: center; background: var(--system); font-size: 11px; color: var(--muted); }
+  .bubble .label { font-size: 10px; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .bubble pre { white-space: pre-wrap; margin: 4px 0 0; font-family: monospace; font-size: 12px; }
+  .bubble .warning { color: #e0a030; margin-top: 6px; font-size: 11px; }
+  .empty-state { color: var(--muted); text-align: center; margin-top: 80px; font-size: 13px; }
+
+  /* Input area */
+  #input-area { border-top: 1px solid var(--border); padding: 16px 24px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 10px; }
+  .tab { padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; background: var(--panel-2); }
+  .tab.active { background: var(--accent); color: white; }
+  .form-row { display: flex; gap: 8px; margin-bottom: 8px; }
+  input, textarea, select { background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+         border-radius: 6px; padding: 8px 10px; font-size: 13px; }
+  input[type=text], textarea { flex: 1; }
+  textarea { resize: none; height: 40px; font-family: inherit; }
+  button.primary { background: var(--accent); color: white; border: none; border-radius: 6px;
+                    padding: 8px 18px; cursor: pointer; font-weight: 600; }
+  button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  label.small { font-size: 11px; color: var(--muted); display: block; margin-bottom: 2px; }
+
+  /* New session modal */
+  #modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none;
+                    align-items: center; justify-content: center; z-index: 10; }
+  #modal { background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+           padding: 24px; width: 420px; }
+  #modal h2 { margin-top: 0; font-size: 16px; }
+  #modal .field { margin-bottom: 12px; }
+  #modal .field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+  #modal .field input, #modal .field select { width: 100%; }
+  #modal .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  button.secondary { background: transparent; border: 1px solid var(--border); color: var(--text);
+                      border-radius: 6px; padding: 8px 18px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  <div id="sidebar-logo"><img src="/favicon.ico" alt="Open ML Foundry"></div>
+  <button id="new-session-btn" onclick="openModal()">+ New Session</button>
+  <div id="session-list"></div>
+</div>
+
+<div id="main">
+  <div id="chat-header">
+    <div>
+      <div class="title" id="header-title">No session selected</div>
+      <div class="subtitle" id="header-subtitle"></div>
+    </div>
+    <span class="status-badge" id="header-status"></span>
+  </div>
+
+  <div id="transcript">
+    <div class="empty-state">Create or select a session to start fine-tuning.</div>
+  </div>
+
+  <div id="input-area" style="display:none">
+    <div class="tabs">
+      <div class="tab active" data-tab="test" onclick="switchTab('test')">💬 Test / Inference</div>
+      <div class="tab" data-tab="train" onclick="switchTab('train')">🎓 Train</div>
+      <div class="tab" data-tab="note" onclick="switchTab('note')">📝 Note</div>
+    </div>
+
+    <div id="tab-test">
+      <div class="form-row">
+        <textarea id="test-prompt" placeholder="Prompt (LLM) or image path (Vision)…"></textarea>
+        <button class="primary" onclick="runInference()">Send</button>
+      </div>
+    </div>
+
+    <div id="tab-train" style="display:none">
+      <div class="form-row">
+        <div>
+          <label class="small">Dataset path</label>
+          <input type="text" id="train-dataset" placeholder="/path/to/train.jsonl (LLM) or /path/to/class-folders (Vision)">
+        </div>
+        <div>
+          <label class="small">Epochs</label>
+          <input type="text" id="train-epochs" value="3" style="width:60px">
+        </div>
+        <div>
+          <label class="small">Learning rate</label>
+          <input type="text" id="train-lr" value="0.0001" style="width:90px">
+        </div>
+        <button class="primary" onclick="startTraining()">Start Training</button>
+      </div>
+    </div>
+
+    <div id="tab-note" style="display:none">
+      <div class="form-row">
+        <textarea id="note-text" placeholder="Add a note to this session's history…"></textarea>
+        <button class="primary" onclick="addNote()">Add</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal-overlay">
+  <div id="modal">
+    <h2>New Session</h2>
+    <div class="field">
+      <label>Session name</label>
+      <input type="text" id="new-name" placeholder="e.g. Qwen3.8 support-bot fine-tune">
+    </div>
+    <div class="field">
+      <label>Model type</label>
+      <select id="new-model-type" onchange="refreshModelOptions()">
+        <option value="llm">LLM</option>
+        <option value="vision">Vision</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Model</label>
+      <select id="new-model-name"></select>
+    </div>
+    <div class="field" id="format-field">
+      <label>Model format</label>
+      <select id="new-model-format">
+        <option value="huggingface">HuggingFace Hub</option>
+        <option value="gguf">GGUF (local file)</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button class="secondary" onclick="closeModal()">Cancel</button>
+      <button class="primary" onclick="createSession()">Create</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "/api/v1";
+let sessions = [];
+let activeSessionId = null;
+let modelsCatalog = { llm: [], vision: [] };
+let pollTimer = null;
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    headers: { "Content-Type": "application/json" }, ...opts,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail || res.statusText);
+  }
+  return res.json();
+}
+
+async function loadModelsCatalog() {
+  modelsCatalog = await api("/models");
+  refreshModelOptions();
+}
+
+function refreshModelOptions() {
+  const type = document.getElementById("new-model-type").value;
+  const sel = document.getElementById("new-model-name");
+  sel.innerHTML = "";
+  const list = type === "llm" ? modelsCatalog.llm : modelsCatalog.vision;
+  for (const m of list) {
+    const opt = document.createElement("option");
+    opt.value = m.display_name;
+    let label = m.display_name;
+    if (m.verified === false) label += " (unverified repo id)";
+    if (m.registered) label += " — registered, trains as built-in CNN";
+    opt.textContent = label;
+    sel.appendChild(opt);
+  }
+  document.getElementById("format-field").style.display = type === "llm" ? "block" : "none";
+}
+
+function openModal() { document.getElementById("modal-overlay").style.display = "flex"; }
+function closeModal() { document.getElementById("modal-overlay").style.display = "none"; }
+
+async function createSession() {
+  const name = document.getElementById("new-name").value.trim();
+  const model_type = document.getElementById("new-model-type").value;
+  const model_name = document.getElementById("new-model-name").value;
+  const model_format = document.getElementById("new-model-format").value;
+  if (!name || !model_name) { alert("Name and model are required"); return; }
+
+  const session = await api("/sessions", {
+    method: "POST",
+    body: JSON.stringify({ name, model_type, model_name, model_format }),
+  });
+  closeModal();
+  await loadSessions();
+  selectSession(session.id);
+}
+
+async function loadSessions() {
+  sessions = await api("/sessions");
+  renderSessionList();
+}
+
+function renderSessionList() {
+  const el = document.getElementById("session-list");
+  el.innerHTML = "";
+  for (const s of sessions) {
+    const div = document.createElement("div");
+    div.className = "session-item" + (s.id === activeSessionId ? " active" : "");
+    div.onclick = () => selectSession(s.id);
+    div.innerHTML = `
+      <div class="name">${escapeHtml(s.name)}</div>
+      <div class="meta">${s.model_type} · ${escapeHtml(s.model_name)}
+        <span class="status-badge status-${s.status}">${s.status}</span>
+      </div>`;
+    el.appendChild(div);
+  }
+}
+
+async function selectSession(id) {
+  activeSessionId = id;
+  renderSessionList();
+  document.getElementById("input-area").style.display = "block";
+  await refreshTranscript();
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(refreshTranscript, 2000);
+}
+
+async function refreshTranscript() {
+  if (!activeSessionId) return;
+  const data = await api(`/sessions/${activeSessionId}`);
+  document.getElementById("header-title").textContent = data.name;
+  document.getElementById("header-subtitle").textContent = `${data.model_type} · ${data.model_name}`;
+  const badge = document.getElementById("header-status");
+  badge.textContent = data.status;
+  badge.className = "status-badge status-" + data.status;
+
+  const transcript = document.getElementById("transcript");
+  transcript.innerHTML = "";
+  if (data.history.length === 0) {
+    transcript.innerHTML = '<div class="empty-state">No activity yet. Train or test the model below.</div>';
+  }
+  for (const ev of data.history) {
+    transcript.appendChild(renderEvent(ev));
+  }
+  transcript.scrollTop = transcript.scrollHeight;
+
+  // Stop polling once training has finished
+  if (data.status !== "training" && pollTimer) {
+    clearInterval(pollTimer);
+    pollTimer = setInterval(refreshTranscript, 8000); // slow idle poll
+  }
+}
+
+function renderEvent(ev) {
+  const div = document.createElement("div");
+  div.className = "bubble " + ev.role;
+  const time = new Date(ev.timestamp + "Z").toLocaleTimeString();
+  let body = "";
+
+  switch (ev.event_type) {
+    case "session_created":
+      body = `Session created — ${escapeHtml(ev.data.model_name)}`; break;
+    case "user_message":
+      body = escapeHtml(ev.data.text); break;
+    case "train_started":
+      body = `Training started — epochs=${ev.data.epochs}, lr=${ev.data.learning_rate}, dataset=${escapeHtml(ev.data.dataset_path)}`; break;
+    case "train_progress":
+      body = `epoch ${ev.data.epoch ?? "?"} — loss: ${fmtNum(ev.data.loss ?? ev.data.final_train_loss)}`; break;
+    case "train_completed":
+      body = `✅ Training complete — loss: ${fmtNum(ev.data.final_loss)}, checkpoint: ${escapeHtml(ev.data.checkpoint_path || ev.data.adapter_path || "n/a")}`; break;
+    case "train_failed":
+      body = `❌ Training failed: ${escapeHtml(ev.data.error)}`; break;
+    case "inference_request":
+      body = escapeHtml(ev.data.prompt || ev.data.image_path || ""); break;
+    case "inference_result":
+      body = `<pre>${escapeHtml(ev.data.output || JSON.stringify(ev.data.predictions || ev.data, null, 2))}</pre>`;
+      if (ev.data.latency_ms) body += `<div class="label">${ev.data.latency_ms}ms</div>`;
+      if (ev.data.warning) body += `<div class="warning">⚠️ ${escapeHtml(ev.data.warning)}</div>`;
+      break;
+    default:
+      body = `<pre>${escapeHtml(JSON.stringify(ev.data, null, 2))}</pre>`;
+  }
+
+  div.innerHTML = `<div class="label">${ev.role} · ${time}</div>${body}`;
+  return div;
+}
+
+function fmtNum(n) { return (typeof n === "number") ? n.toFixed(4) : (n ?? "—"); }
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function switchTab(name) {
+  for (const t of document.querySelectorAll(".tab")) t.classList.toggle("active", t.dataset.tab === name);
+  document.getElementById("tab-test").style.display = name === "test" ? "block" : "none";
+  document.getElementById("tab-train").style.display = name === "train" ? "block" : "none";
+  document.getElementById("tab-note").style.display = name === "note" ? "block" : "none";
+}
+
+async function runInference() {
+  const text = document.getElementById("test-prompt").value.trim();
+  if (!text || !activeSessionId) return;
+  const session = sessions.find(s => s.id === activeSessionId);
+  const body = session.model_type === "llm" ? { prompt: text } : { image_path: text };
+  document.getElementById("test-prompt").value = "";
+  try {
+    await api(`/sessions/${activeSessionId}/inference`, { method: "POST", body: JSON.stringify(body) });
+  } catch (e) { alert("Inference failed: " + e.message); }
+  await refreshTranscript();
+}
+
+async function startTraining() {
+  const dataset_path = document.getElementById("train-dataset").value.trim();
+  const epochs = parseInt(document.getElementById("train-epochs").value, 10) || 3;
+  const learning_rate = parseFloat(document.getElementById("train-lr").value) || 1e-4;
+  if (!dataset_path || !activeSessionId) return;
+  try {
+    await api(`/sessions/${activeSessionId}/train`, {
+      method: "POST",
+      body: JSON.stringify({ dataset_path, epochs, learning_rate }),
+    });
+  } catch (e) { alert("Failed to start training: " + e.message); }
+  await refreshTranscript();
+  if (pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(refreshTranscript, 2000);
+}
+
+async function addNote() {
+  const text = document.getElementById("note-text").value.trim();
+  if (!text || !activeSessionId) return;
+  document.getElementById("note-text").value = "";
+  await api(`/sessions/${activeSessionId}/note`, { method: "POST", body: JSON.stringify({ text }) });
+  await refreshTranscript();
+}
+
+loadModelsCatalog();
+loadSessions();
+</script>
+</body>
+</html>

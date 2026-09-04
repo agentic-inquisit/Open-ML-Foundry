@@ -28,83 +28,126 @@ def model_group():
               default="pytorch", help="Model type (default: pytorch)")
 def import_model(path, name, type):
     """
-    Import a pretrained model for fine-tuning
+    Register an externally-sourced model in the model registry so it shows
+    up in `sentinel model list`/`info` and can be referenced by name.
+
+    Backed by edge/model_registry.py's ModelRegistry (model_registry.db) —
+    the same store `/finetune` (edge/vision_module.py) and `sentinel train
+    start` write completed training runs into, so imported and trained
+    models both show up in one place. This records the import; it doesn't
+    validate or convert the model file, and `sentinel train start --model
+    <name>` still needs a real training path (currently: the built-in CNN
+    for vision, or an LLM catalog entry) to actually use it.
 
     Examples:
         sentinel model import --path ./my_model.pth --name custom_resnet
         sentinel model import --path openai/clip-vit-base-patch32 --name clip_v1 --type huggingface
     """
+    from edge.model_registry import ModelRegistry
+
     click.echo(f"\n📦 Importing model: {name}")
     click.echo(f"   Path: {path}")
     click.echo(f"   Type: {type}")
 
-    # For now, just register in config
-    model_registry = {
-        "name": name,
-        "path": path,
-        "type": type,
-        "imported_at": datetime.now().isoformat(),
-        "status": "ready"
-    }
+    registry = ModelRegistry()
+    reg_result = registry.register_model(
+        model_name=name,
+        description=f"Imported {type} model from {path}",
+        owner="cli",
+        access_level="private",
+    )
+    registry.add_history_event(
+        reg_result["model_id"], "model_imported", f"path={path}, type={type}", "cli"
+    )
 
-    click.echo(f"\n✓ Model registered: {name}")
-    click.echo(f"  Use in training: sentinel train --model {name} --dataset <path>")
+    click.echo(f"\n✓ Registered in model_registry.db: {name} {reg_result['version']} "
+              f"(id={reg_result['model_id']})")
+    click.echo(f"  Use in training: sentinel train start --model {name} --dataset <path>")
 
 
 @model_group.command(name="list")
 def list_models():
-    """List all available models (built-in + imported)"""
-    click.echo("\n📦 Available Models:")
-    click.echo("\n  Built-in Models:")
-    click.echo("    ✓ fasterrcnn    - Object detection (80 COCO classes)")
-    click.echo("    ✓ cnn           - Custom classifier (JAX)")
-    click.echo("    ✓ clip          - Image-text embeddings (OpenAI)")
-    click.echo("\n  Imported Models:")
-    click.echo("    (none yet - use 'sentinel model import' to add)")
+    """List models — what `sentinel train start` can actually run, plus
+    everything on record in the model registry."""
+    from edge.model_registry import ModelRegistry
+    from llm import supported_models
+
+    click.echo("\n📦 Built-in (vision, trains from scratch via JAX/Flax):")
+    click.echo("    cnn                  — 3-conv-layer classifier")
+
+    click.echo("\n📦 LLM catalog (LoRA/QLoRA fine-tuning):")
+    for m in supported_models.list_models():
+        tag = "verified" if m["verified"] else "repo id unconfirmed"
+        click.echo(f"    {m['display_name']:20s} — {m['family']}, {m['size_hint']} ({tag})")
+
+    registry = ModelRegistry()
+    registered = registry.get_all_models()
+    click.echo(f"\n📦 Registered (model_registry.db — imports and completed training runs):")
+    if not registered:
+        click.echo("    (none yet — 'sentinel model import' or a completed training run adds one)")
+    else:
+        for entry in registered:
+            latest = entry["versions"][0] if entry["versions"] else None
+            if latest:
+                click.echo(f"    {entry['name']:20s} — {entry['version_count']} version(s), "
+                          f"latest {latest['version']} ({latest['status']})")
 
 
 @model_group.command(name="info")
 @click.argument("model_name")
 def model_info(model_name):
-    """Show model details"""
-    models = {
-        "fasterrcnn": {
-            "name": "FasterRCNN ResNet50+FPN",
-            "type": "Object Detection",
-            "framework": "PyTorch",
-            "pretrained": "COCO (80 classes)",
-            "latency": "10-15ms",
-            "input": "Images (any size)",
-            "output": "Bounding boxes, class labels, confidence"
-        },
-        "cnn": {
-            "name": "Custom 3-layer CNN",
-            "type": "Classification",
-            "framework": "JAX/Flax",
-            "pretrained": "No (trains from scratch)",
-            "latency": "5-10ms",
-            "input": "Images (224x224 default)",
-            "output": "Class predictions, confidence"
-        },
-        "clip": {
-            "name": "CLIP",
-            "type": "Embeddings",
-            "framework": "Transformers",
-            "pretrained": "OpenAI CLIP",
-            "latency": "Instant",
-            "input": "Images + text",
-            "output": "512-dim embeddings"
-        }
-    }
+    """Show model details — checks the built-in CNN, then the LLM catalog,
+    then model_registry.db, in that order."""
+    from edge.model_registry import ModelRegistry
+    from llm import supported_models
 
-    if model_name in models:
-        model = models[model_name]
-        click.echo(f"\n📋 Model: {model['name']}")
-        for key, value in model.items():
-            if key != "name":
-                click.echo(f"   {key.capitalize()}: {value}")
-    else:
-        click.echo(f"❌ Model '{model_name}' not found")
+    if model_name == "cnn":
+        click.echo(f"\n📋 Model: cnn (built-in)")
+        click.echo(f"   Type: Classification")
+        click.echo(f"   Framework: JAX/Flax")
+        click.echo(f"   Architecture: 3x (conv → relu → avg_pool) → dense(256) → dense(num_classes)")
+        click.echo(f"   Pretrained: No — trains from scratch each run")
+        click.echo(f"   Input: Images, default 224x224 (--image-size to change)")
+        click.echo(f"   Latency: not benchmarked")
+        return
+
+    llm_entry = next(
+        (m for m in supported_models.list_models()
+         if model_name in (m["display_name"], m["repo_id"])),
+        None,
+    )
+    if llm_entry:
+        tag = "verified" if llm_entry["verified"] else "unconfirmed — check on Hugging Face before use"
+        click.echo(f"\n📋 Model: {llm_entry['display_name']}")
+        click.echo(f"   Family: {llm_entry['family']}")
+        click.echo(f"   Repo ID: {llm_entry['repo_id']} ({tag})")
+        click.echo(f"   Size: {llm_entry['size_hint']}")
+        click.echo(f"   GGUF support: {'Yes' if llm_entry['supports_gguf'] else 'No'}")
+        if llm_entry["notes"]:
+            click.echo(f"   Notes: {llm_entry['notes']}")
+        return
+
+    registry = ModelRegistry()
+    versions = registry.get_model_versions(model_name)
+    if not versions:
+        click.echo(f"❌ Model '{model_name}' not found (checked built-ins, the LLM catalog, "
+                  f"and model_registry.db)")
+        return
+
+    click.echo(f"\n📋 Model: {model_name} — {len(versions)} version(s) in model_registry.db")
+    for v in versions:
+        click.echo(f"\n   {v['version']}  (id={v['model_id']}, status={v['status']})")
+        click.echo(f"     Created: {v['created_at']}")
+        if v["description"]:
+            click.echo(f"     Description: {v['description']}")
+        meta = v["metadata"]
+        if meta.get("epochs_trained"):
+            click.echo(f"     Trained: {meta['epochs_trained']} epochs, "
+                      f"final_train_loss={meta['final_train_loss']}, "
+                      f"best_val_loss={meta['best_val_loss']}")
+        ds = v["dataset"]
+        if ds.get("total_images"):
+            click.echo(f"     Dataset: {ds['total_images']} images, classes={ds['classes']}")
 
 
 # ============================================================================
@@ -224,106 +267,159 @@ def train_group():
 
 
 @train_group.command(name="start")
-@click.option("--model", "-m", required=True, help="Model to train (built-in or imported)")
-@click.option("--dataset", "-d", required=True, help="Dataset path or name")
+@click.option("--model", "-m", required=True,
+              help="'cnn' (built-in vision), an LLM catalog name/repo id, or a name "
+                   "already in model_registry.db")
+@click.option("--dataset", "-d", required=True,
+              help="Vision: directory of class subfolders (dataset/<class>/<images>). "
+                   "LLM: JSONL file.")
 @click.option("--epochs", "-e", type=int, default=5, help="Number of epochs (default: 5)")
-@click.option("--batch-size", "-b", type=int, default=32, help="Batch size (default: 32)")
+@click.option("--batch-size", "-b", type=int, default=4, help="Batch size (default: 4)")
 @click.option("--lr", type=float, default=1e-3, help="Learning rate (default: 1e-3)")
-@click.option("--gpu", is_flag=True, help="Use GPU if available")
-@click.option("--live", is_flag=True, help="Show live training metrics (Phase 3)")
+@click.option("--gpu", is_flag=True, help="Record GPU intent on the job (device placement "
+                                          "is chosen automatically either way)")
+@click.option("--num-classes", type=int, default=None,
+              help="Vision only. Omit to derive from the dataset's class subfolders.")
+@click.option("--image-size", type=int, default=224, help="Vision only (default: 224)")
+@click.option("--target-object", default=None, help="Vision only. Defaults to --model.")
+@click.option("--model-format", type=click.Choice(["huggingface", "gguf"]), default="huggingface",
+              help="LLM only (default: huggingface)")
+@click.option("--enable-validation/--no-validation", default=True,
+              help="Vision only: hold out part of the dataset for validation (default: on)")
+@click.option("--live", is_flag=True, help="Render the full terminal dashboard after training completes")
 @click.option("--job-id", default=None, help="Custom job ID (optional)")
-def train_start(model, dataset, epochs, batch_size, lr, gpu, live, job_id):
+def train_start(model, dataset, epochs, batch_size, lr, gpu, num_classes, image_size,
+                target_object, model_format, enable_validation, live, job_id):
     """
-    Start training with optional live metrics dashboard
+    Vision models train via edge/jax_train.py against a dataset directory of 
+    class subfolders. LLM catalog models train via llm/lora_trainer.py (LoRA/QLoRA) 
+    against a JSONL dataset. 
 
     Examples:
         sentinel train start --model cnn --dataset ./images --epochs 10
-        sentinel train start --model custom_resnet --dataset my_dataset --live
+        sentinel train start --model Qwen3.8 --dataset ./chat.jsonl --live
         sentinel train start --model cnn --dataset ./images --job-id exp_001
     """
-    from sentinel.cli.job_tracker import JobTracker, MetricsCollector
+    from sentinel.cli.job_tracker import JobTracker, MetricsCollector, TrainingMetrics
     from sentinel.cli.dashboard import TerminalDashboard
-    import uuid
+    from llm import supported_models
 
-    # Generate job ID if not provided
     if not job_id:
         job_id = f"job_{int(uuid.uuid4().int / 1e10)}"
 
+    llm_entry = next(
+        (m for m in supported_models.list_models()
+         if model in (m["display_name"], m["repo_id"])),
+        None,
+    )
+    kind = "llm" if llm_entry else "vision"
+
     click.echo(f"\n🚀 Starting training")
     click.echo(f"   Job ID: {job_id}")
-    click.echo(f"   Model: {model}")
+    click.echo(f"   Model: {model} ({kind})")
     click.echo(f"   Dataset: {dataset}")
     click.echo(f"   Epochs: {epochs}")
     click.echo(f"   Batch size: {batch_size}")
     click.echo(f"   Learning rate: {lr}")
-    click.echo(f"   GPU: {'Yes' if gpu else 'No'}")
 
-    # Phase 3: Create job and show live dashboard if requested
     tracker = JobTracker()
     job = tracker.create_job(
-        job_id=job_id,
-        model_name=model,
-        dataset_path=dataset,
-        epochs=epochs,
-        batch_size=batch_size,
-        learning_rate=lr,
-        gpu_enabled=gpu
+        job_id=job_id, model_name=model, dataset_path=dataset,
+        epochs=epochs, batch_size=batch_size, learning_rate=lr, gpu_enabled=gpu,
     )
-
     click.echo(f"\n✓ Job created and tracked")
     click.echo(f"   Job stored in: {tracker.storage_dir / f'{job_id}.json'}")
 
-    if live:
-        click.echo(f"\n📊 Live dashboard mode (Phase 3)")
-        click.echo(f"   Note: Dashboard simulation in dev mode")
-        click.echo(f"   Real implementation connects to training engine")
+    tracker.start_job(job_id)
+    metrics_collector = MetricsCollector()
 
-        # Show dashboard template
-        metrics = MetricsCollector()
+    try:
+        if kind == "llm":
+            from llm import model_loader, lora_trainer
 
-        # Simulate some training progress for demo
-        import random
-        tracker.start_job(job_id)
+            click.echo(f"\n⏳ Loading {model} ({model_format})...")
+            loaded = model_loader.load(model, model_format)
 
-        for epoch in range(1, min(4, epochs + 1)):
-            loss = 2.5 - (epoch * 0.3) + random.uniform(-0.1, 0.1)
-            accuracy = 0.3 + (epoch * 0.2) + random.uniform(-0.05, 0.05)
-            val_loss = 2.4 - (epoch * 0.25) + random.uniform(-0.1, 0.1)
-            val_accuracy = 0.35 + (epoch * 0.18) + random.uniform(-0.05, 0.05)
+            def on_progress(update: dict) -> None:
+                loss = update.get("loss")
+                if loss is None:
+                    return
+                epoch = update.get("epoch") or 0.0
+                tracker.set_progress(job_id, epoch)
+                click.echo(f"   step {update.get('step')} | epoch {epoch:.2f} | loss {loss:.4f}")
 
-            from sentinel.cli.job_tracker import TrainingMetrics
-            metric = TrainingMetrics(
-                epoch=epoch,
-                loss=max(0.1, loss),
-                accuracy=min(0.95, max(0.0, accuracy)),
-                val_loss=max(0.1, val_loss),
-                val_accuracy=min(0.95, max(0.0, val_accuracy)),
-                timestamp=datetime.now().isoformat()
+            config = lora_trainer.LoRAConfig(
+                epochs=epochs, learning_rate=lr, batch_size=batch_size,
+                output_dir=f"training_outputs/lora/{job_id}",
             )
+            result = lora_trainer.train(loaded, dataset, config, on_progress=on_progress)
 
-            tracker.add_metrics(job_id, metric)
+            click.echo(f"\n✓ Training complete")
+            click.echo(f"   Final loss: {result.get('final_loss')}")
+            click.echo(f"   Adapter saved to: {result.get('adapter_path')}")
 
-        # Show dashboard
-        dashboard = TerminalDashboard(job, metrics)
-        click.echo(dashboard.render_full(show_chart=True))
+        else:
+            from edge import jax_train
 
-        click.echo(f"\n✓ Dashboard simulation complete (first 3 epochs)")
-        click.echo(f"   Full training will update metrics in real-time")
-        click.echo(f"   Check job status: sentinel train status {job_id}")
+            if model != "cnn":
+                click.echo(f"\n⚠ '{model}' isn't the built-in cnn or an LLM catalog entry — "
+                          f"edge/jax_train.py only implements one vision architecture (the "
+                          f"built-in CNN), so this trains that, not whatever '{model}' was "
+                          f"registered/imported as. The job/registry record its name as "
+                          f"'{model}' for tracking, not as a claim it's a different architecture.")
 
-    else:
-        click.echo(f"\n💡 Tip: Use --live flag to see live training dashboard")
-        click.echo(f"   sentinel train start --model {model} --dataset {dataset} --live")
+            click.echo(f"\n⏳ Training (progress prints below as each epoch finishes)...")
+            result = jax_train.run_finetuning(
+                dataset_dir=dataset,
+                target_object=target_object or model,
+                steps=epochs, batch_size=batch_size,
+                num_classes=num_classes, image_size=image_size,
+                enable_validation=enable_validation,
+                checkpoint_dir=f"training_outputs/vision/{job_id}",
+            )
+            if result.get("status") == "error":
+                raise RuntimeError(result.get("message", "Vision training failed"))
 
-    click.echo(f"\n📌 Using job tracking (Phase 3 feature)")
-    click.echo(f"   View job: sentinel train status {job_id}")
+            train_losses = result.get("train_loss_history", [])
+            train_accs = result.get("train_acc_history", [])
+            val_losses = result.get("val_loss_history", [])
+            val_accs = result.get("val_acc_history", [])
+            for i in range(len(train_losses)):
+                metric = TrainingMetrics(
+                    epoch=i + 1,
+                    loss=train_losses[i],
+                    accuracy=train_accs[i] if i < len(train_accs) else 0.0,
+                    val_loss=val_losses[i] if i < len(val_losses) else 0.0,
+                    val_accuracy=val_accs[i] if i < len(val_accs) else 0.0,
+                    timestamp=datetime.now().isoformat(),
+                )
+                tracker.add_metrics(job_id, metric)
+                metrics_collector.metrics.append(metric)
+
+            click.echo(f"\n✓ Training complete")
+            click.echo(f"   Final train loss: {result.get('final_train_loss')}")
+            click.echo(f"   Best val loss: {result.get('best_val_loss')}")
+            click.echo(f"   Checkpoint: {result.get('best_checkpoint')}")
+
+        tracker.complete_job(job_id)
+
+    except Exception as e:
+        tracker.fail_job(job_id, str(e))
+        click.echo(f"\n❌ Training failed: {e}", err=True)
+        return
+
+    if live:
+        if kind == "llm":
+            click.echo(f"\n(--live shows the full metrics dashboard for vision jobs only — "
+                      f"LLM training here only reports loss, not accuracy, so there's no "
+                      f"honest chart to draw. Loss was streamed above as training ran.)")
+        else:
+            job = tracker.get_job(job_id)  # reload with final state
+            dashboard = TerminalDashboard(job, metrics_collector)
+            click.echo(dashboard.render_full(show_chart=True))
+
+    click.echo(f"\n   View job: sentinel train status {job_id}")
     click.echo(f"   List jobs: sentinel train list")
-
-    click.echo(f"\nFor full training implementation via REST API:")
-    click.echo(f"  curl -X POST http://localhost:8001/finetune \\")
-    click.echo(f"    -F 'dataset=@image.jpg' \\")
-    click.echo(f"    -F 'target_object={model}' \\")
-    click.echo(f"    -F 'epochs={epochs}'")
 
 
 @train_group.command(name="status")
@@ -447,8 +543,11 @@ def examples():
     4. Prepare a dataset:
        sentinel dataset prepare --path ./images --split 0.8 0.1 0.1 --preview
 
-    5. Start training:
-       sentinel train start --model custom_resnet --dataset ./images --epochs 10 --live
+    5. Train the built-in vision model (dataset = one subfolder per class):
+       sentinel train start --model cnn --dataset ./images --epochs 10 --live
+
+    6. Train an LLM from the catalog (dataset = a JSONL file):
+       sentinel train start --model Qwen3.8 --dataset ./chat.jsonl --epochs 3
 
     For more help:
        sentinel <command> --help

@@ -239,8 +239,3 @@ class DatasetBrowser:
                 print(f"   {warning}")
 
         print(f"\n{'='*60}\n")
-
-    def interactive_preview(self):
-        """Interactive dataset preview (for future terminal UI)"""
-        # Placeholder for Phase 3
-        pass

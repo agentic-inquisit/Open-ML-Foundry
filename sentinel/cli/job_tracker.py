@@ -126,6 +126,20 @@ class JobTracker:
         self._save_job(job)
         return job
 
+    def set_progress(self, job_id: str, current_epoch: float) -> TrainingJob:
+        """Update progress TrainingMetrics record.
+        """
+        if job_id not in self.jobs:
+            raise ValueError(f"Job {job_id} not found")
+
+        job = self.jobs[job_id]
+        job.current_epoch = current_epoch
+        job.progress_percent = (
+            min(100.0, (current_epoch / job.total_epochs) * 100.0) if job.total_epochs else 0.0
+        )
+        self._save_job(job)
+        return job
+
     def add_metrics(self, job_id: str, metrics: TrainingMetrics) -> TrainingJob:
         """Add metrics for current epoch"""
         if job_id not in self.jobs:

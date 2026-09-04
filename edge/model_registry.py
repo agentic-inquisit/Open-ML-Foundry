@@ -478,6 +478,30 @@ class ModelRegistry:
         conn.close()
         return all_models
 
+    def get_model_name(self, model_id: int) -> Optional[str]:
+        """Resolve a model row's id to its model_name, for callers that
+        only have the id (get_model_versions takes model_name, not id)."""
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute("SELECT model_name FROM models WHERE id = ?", (model_id,))
+        row = c.fetchone()
+        conn.close()
+        return row[0] if row else None
+
+    def get_latest_checkpoint(self, model_id: int) -> Optional[str]:
+        """Return the most recent checkpoint_path saved for a model_id, or
+        None if no checkpoint has been saved yet."""
+        conn = sqlite3.connect(self.db_path)
+        c = conn.cursor()
+        c.execute(
+            "SELECT checkpoint_path FROM checkpoints WHERE model_id = ? "
+            "ORDER BY epoch DESC LIMIT 1",
+            (model_id,),
+        )
+        row = c.fetchone()
+        conn.close()
+        return row[0] if row else None
+
     def get_best_version(self, model_name: str) -> Optional[Dict]:
         """Get the best (latest active) version of a model."""
         versions = self.get_model_versions(model_name)

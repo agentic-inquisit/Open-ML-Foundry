@@ -1,52 +1,68 @@
-# Open ML Foundry
+<p align="center">
+  <img src="assets/icon.ico" alt="Open ML Foundry" width="520">
+</p>
 
-> **Open-source stack to fine-tune models locally, accelerate edge deployments**
+> **Open-source multi-modal fine-tuning. LLMs and vision models, fully local, accelerate edge deployments**
 
-Production-ready framework for local model fine-tuning with privacy-first design. Train, optimize, and deploy custom ML models on edge devices without cloud dependencies. Fast JAX/PyTorch-based fine-tuning with XLA optimization, edge deployment to mobile/embedded devices. No cloud required.
+All-in-one framework for fine-tuning large language models and vision models on your machine. Session-based training for Qwen3.8, GLM-5.3-Flash, Kimi K3, MiniMax-H3, DeepSeek-V4, Gemma 4 with LoRA/QLoRA. Plus vision models (ResNet, YOLO, CLIP). Privacy-first, runs completely local, deploy to edge devices. No cloud required.
 
 ![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue)
 ![JAX/Flax](https://img.shields.io/badge/JAX%2FFlax-0.4.13+-purple)
-![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![Alpha](https://img.shields.io/badge/Status-Alpha-orange)
 
 ---
 
 ## 🎯 Use Cases (What You Can Do Today)
 
+**LLM Fine-Tuning (Session-Based) - v0.3.0**
+| Use Case | Feature | Models |
+|----------|---------|--------|
+| **Fine-tune LLM** | LoRA/QLoRA with session history | Qwen, Gemma, DeepSeek, GLM, MiniMax |
+| **Test inference** | Chat-like interface during training | All LLM models |
+| **Model selection** | Choose from HF Hub or GGUF models | HF Hub + GGUF |
+| **Multi-turn training** | Train on dialogue/conversation data | All LLM models |
+
+See [Known Limitations](#-known-limitations) — this hasn't been run end-to-end yet.
+
+**Vision Fine-Tuning**
 | Use Case | Feature | Status |
 |----------|---------|--------|
-| **Fine-tune a custom image classifier** | `POST /finetune` + model export | ✅ Working |
-| **Detect objects in images/video** | FasterRCNN ResNet50 (COCO pretrained) | ✅ Working |
-| **Mobile model deployment** | TFLite/ONNX export + quantization | ✅ Working |
-| **Edge device inference** | 8-10ms latency, optimized for CPU | ✅ Working |
-| **Search similar images** | CLIP embeddings + vector search | ✅ Working |
-| **Track model versions** | Auto-versioning, rollback capability | ✅ Working |
-| **Import & fine-tune pretrained models** | Model upload UI | ⚠️ In progress |
-| **Real-time training dashboard** | Live metrics + confusion matrix | ⚠️ In progress |
+| **Custom image classifier** | ResNet/CNN + your data (demo-scale training loop) | ✅ Working |
+| **Object detection** | FasterRCNN ResNet50 (COCO) | ✅ Working |
+| **Mobile export** | TFLite/ONNX + quantization | ✅ Working |
+| **Edge inference** | 8-10ms latency | ✅ Working |
+| **Image search** | CLIP embeddings | ✅ Working |
+| **Model versioning** | Auto-versioning + rollback | ✅ Working |
+| **Test a fine-tuned checkpoint** | Load checkpoint → predict | ✅ Working (`FinetuneInference` loads real params and runs a real forward pass) |
 
 ---
 
 ## 📊 Comparison with Existing Tools
 
-| Feature | Open ML Foundry | Unsloth | Hugging Face | PyTorch Lightning | FastAI |
-|---------|---------|---------|--------------|-------------------|--------|
-| **Local fine-tuning** | ✅ Full | ✅ Speed | ⚠️ (slow) | ✅ | ✅ |
-| **Training speed** | ✅ (30%+ XLA) | ✅⭐ (2-5x) | ⚠️ Baseline | ✅ | ✅ |
-| **Edge deployment** | ✅ Native | ❌ | ❌ | ❌ | ⚠️ |
-| **Model import UI** | ❌ | ❌ | ✅ (web) | ❌ | ❌ |
-| **Multi-infra training** | ⚠️ (v0.5) | ❌ | ❌ | ✅ | ❌ |
-| **Model versioning** | ✅ Auto | ❌ | ✅ (Hub) | ❌ | ❌ |
-| **No cloud required** | ✅ | ✅ | ❌ | ✅ | ✅ |
-| **Pretrained models** | ⚠️ Limited | ❌ | ✅ (200k+) | ❌ | ✅ |
-| **Ease of use** | ⚠️ API-first | ⭐ Simple | ✅ | ⚠️ | ✅ |
-| **Inference latency** | 8-10ms | Fast | 50-100ms | Variable | 20-40ms |
-| **Production-ready** | ✅ | ⚠️ (training focus) | ✅ | ✅ | ✅ |
+**LLM Fine-Tuning Focus**
+| Feature | Open ML Foundry | Unsloth | LLaMA-Factory | Axolotl |
+|---------|---------|---------|--------------|---------|
+| **LoRA/QLoRA** | ✅ | ✅⭐ (fastest) | ✅ | ✅ |
+| **Session-based UI** | ✅ Chat history | ⚠️ Unsloth Studio (web UI + desktop app, has session features) | ❌ CLI/Web basic | ❌ CLI only |
+| **Model switching** | ❌ New session per model (`model_name` is fixed at session creation, no code path changes it) | ❌ | ⚠️ Restart | ⚠️ Restart |
+| **Local-only (no cloud)** | ✅ | ✅ | ✅ | ✅ |
+| **Popular models** | Qwen, Gemma, DeepSeek, GLM | ⭐ Optimized | All HF models | All HF models |
+| **Inference UI** | ✅ Chat interface | ⚠️ Unsloth Studio (chat + side-by-side model comparison) | ⚠️ Basic | ❌ |
+| **Vision + LLM** | ✅ Both | ❌ LLM only | ❌ LLM only | ❌ LLM only |
 
-**TL;DR - Choose based on your use case:**
-- **Unsloth if:** You want the FASTEST training speed (2-5x improvement)
-- **Open ML Foundry if:** You need fast local fine-tuning + edge deployment + unified multi-infra
-- **Hugging Face if:** You want 200k pretrained models + web UI
-- **PyTorch Lightning if:** You need distributed training framework
-- **FastAI if:** You're learning or want simplicity
+**Vision Fine-Tuning (Legacy Support)**
+| Feature | Open ML Foundry | PyTorch Lightning | FastAI |
+|---------|---------|--------------|--------|
+| **Image classification** | ✅ ResNet/CNN | ✅ | ✅ |
+| **Object detection** | ✅ FasterRCNN | ❌ | ⚠️ |
+| **Edge deployment** | ✅ TFLite/ONNX | ⚠️ | ❌ |
+| **CLIP embeddings** | ✅ | ❌ | ❌ |
+
+**TL;DR - Choose based on use case:**
+- **Unsloth if:** You want FASTEST LLM training speed (2-5x)
+- **Open ML Foundry if:** You need LLM + vision + edge deployment + session-based UI
+- **LLaMA-Factory if:** You want all HuggingFace models with advanced config
+- **PyTorch Lightning if:** You need distributed/multi-GPU framework
 
 ---
 
@@ -99,86 +115,92 @@ Start experimenting with **built-in models immediately** — no setup needed bey
 ### 1. Clone & Setup
 ```bash
 git clone https://github.com/agentic-inquisit/open-ml-foundry.git
-cd sentinel-cloud-vision-upd
+cd open-ml-foundry
 
-# Run setup script (checks dependencies, creates venv, installs)
+# Run setup (checks dependencies, creates venv, installs packages)
 ./setup.sh
 ```
 
-### 2. Use the CLI (Recommended)
+### 2. Session-Based Fine-Tuning (LLM + Vision, Chat UI)
 ```bash
-# List available built-in models
-sentinel model list
+# Start the API + session UI
+uvicorn serving.main:app --reload --port 8000
 
-# Prepare your dataset for training
-sentinel dataset prepare --path ./my_images --preview
-
-# Fine-tune a model
-sentinel train start --model cnn --dataset ./my_images --epochs 10 --gpu
+# Open http://localhost:8000/sessions in a browser:
+# 1. "+ New Session" → pick LLM (Qwen, Gemma, DeepSeek, GLM, MiniMax) or Vision
+# 2. Point at a dataset (JSONL for LLM, image path for vision)
+# 3. Start Training → progress streams into the session as chat events
+# 4. Test tab → send a prompt/image, see the model's reply in the same thread
+# 5. Every session keeps its full history — switch sessions from the sidebar
 ```
+Or drive the same flow over the REST API directly — see [Core API Endpoints](#-core-api-endpoints) below.
 
-**See [CLI_GUIDE.md](docs/CLI_GUIDE.md) for complete examples and all commands.**
-
-### 3. Or Start Servers & Use REST API
+### 3. Vision Fine-Tuning (Direct API, no session)
 ```bash
-# Terminal 1: Start servers
-./start.sh
-
-# Terminal 2: Fine-tune via REST API
-curl -X POST http://localhost:8001/finetune \
-  -F "dataset=@your_image.jpg" \
-  -F "target_object=my_class" \
-  -F "epochs=5"
-
-# Object detection
+# Object detection (pretrained, no fine-tuning needed)
 curl http://localhost:8001/detect -F "image=@test.jpg"
 
-# Export for mobile
-python -c "
-from edge.optimized_inference import OptimizedVisionInference
-engine = OptimizedVisionInference()
-engine.export_to_tflite('model.tflite')
-engine.export_to_onnx('model.onnx')
-"
+# One-shot fine-tune (legacy endpoint, still works outside sessions)
+curl -X POST http://localhost:8001/finetune -F "dataset=@image.jpg" -F "target_object=my_class"
+```
+
+### 4. Full Server Setup
+```bash
+# Terminal 1: Start all services
+./start.sh
+
+# Terminal 2: Test LLM inference
+curl -X POST http://localhost:8000/llm/inference \
+  -H "Content-Type: application/json" \
+  -d '{"session_id": "my-session", "prompt": "Hello, how are you?"}'
+
+# Test vision inference
+curl http://localhost:8001/detect -F "image=@test.jpg"
 ```
 
 ---
 
-## ⚡ Core Features (Production Ready)
+## ⚡ Core Features
 
-### 🎓 Fine-Tuning
-- **POST /finetune** - Train custom CNN on your data (takes 5-10s for demo, scales to hours for production)
-- **Validation & early stopping** - Automatic train/val split with configurable patience
-- **Checkpointing** - Save best models at each epoch
-- **Configurable architecture** - Customize num_classes (2-1000), image_size (28-512)
+### 💬 LLM Fine-Tuning (Session-Based) - v0.3.0
+Implemented in `core/session_store.py`, `llm/`, `serving/session_api.py`, `serving/static/sessions_chat.html`. Not yet run end-to-end — see [Known Limitations](#-known-limitations).
+- **Session management** - Each fine-tuning is a session with persistent, chat-like history (SQLite)
+- **LoRA/QLoRA** - via `peft` + `transformers`; QLoRA needs `bitsandbytes` + CUDA GPU (not installed by default)
+- **Model support** - Qwen, Gemma, DeepSeek, GLM, MiniMax, Kimi (via HF Hub — see `llm/supported_models.py` for repo id verification status)
+- **Model formats** - HuggingFace Hub + GGUF (GGUF needs `llama-cpp-python`, not installed by default — build-tool dependency)
+- **Inference in-session** - Test the model mid-conversation from the same chat UI
+- **Multi-turn support** - JSONL datasets with `messages` (chat) or `prompt`/`completion` shape
+- **Checkpointing** - LoRA adapter saved per session under `training_outputs/llm/<session_id>/`
 
-### 🔍 Object Detection (Pre-trained)
-- **FasterRCNN ResNet50+FPN** - COCO pretrained (80 classes), no fine-tuning needed
-- **GET /detect** - Real-time object detection endpoint
-- **Bounding boxes + confidence** - Full detection pipeline ready to use
+### 🖼️ Vision Fine-Tuning (Maintained)
+- **Image classification** - Fine-tune ResNet/CNN on your images
+- **Object detection** - FasterRCNN ResNet50+FPN (COCO pretrained)
+- **Quick training** - 5-10s for demo datasets, scales to hours
+- **Validation & early stopping** - Automatic train/val split with patience
+- **Auto-versioning** - v1.0, v1.1, v2.0 format with rollback
 
 ### 📊 Model Management
-- **Auto-versioning** - v1.0, v1.1, v2.0 format with rollback
-- **Performance tracking** - Loss, accuracy, metrics per epoch stored in SQLite
+- **Performance tracking** - Loss, accuracy, metrics per epoch in SQLite
 - **Model comparison** - Compare versions side-by-side
+- **Session history** - View all training runs like conversations
 - **Checkpoint storage** - Save/restore at any epoch
 
 ### 🚀 Optimization & Export
-- **XLA JIT compilation** - 30%+ speedup (15-20% JIT + 20-30% operator fusion)
-- **TFLite export** - 3-10MB quantized models for mobile (50-75% size reduction)
-- **ONNX export** - Cross-platform deployment (Windows, Linux, macOS, mobile)
-- **Batch inference** - 10x speedup with vmap (32 images: 160ms = 5ms each)
+- **LoRA adapter export** - Lightweight 1-50MB models
+- **TFLite export** - 3-10MB quantized vision models
+- **ONNX export** - Cross-platform deployment
+- **GGUF quantization** - Efficient LLM inference on CPU
 
 ### 🔐 Search & Embeddings
-- **CLIP embeddings** - Image-text similarity search (works 100% locally)
-- **RAG orchestration** - Find similar images semantically
-- **Vector DB ready** - Design for semantic retrieval
+- **CLIP embeddings** - Image-text similarity locally
+- **RAG orchestration** - Semantic image search
+- **Vector DB ready** - For semantic retrieval
 
 ### 🔧 Infrastructure
-- **Prometheus metrics** - Track request latency, throughput
-- **User auth** - JWT-based with role-based access (admin/user)
-- **API versioning** - v1 endpoints, ready for backward compat
-- **Separate domains** - Admin panel on :8001, user app on :8000
+- **Prometheus metrics** - Track latency, throughput
+- **User auth** - JWT-based with role-based access
+- **No cloud required** - Fully local, privacy-first
+- **Docker support** - docker-compose for quick setup
 
 ---
 
@@ -229,67 +251,78 @@ engine.export_to_onnx('model.onnx')
 ## 📁 Project Structure
 
 ```
-sentinel-cloud-vision-upd/
-├── edge/                           # Core ML (Fine-tuning + Inference)
-│   ├── jax_train.py               # ✅ Training loop + CNN architecture
-│   ├── optimized_inference.py     # ✅ XLA optimization, TFLite/ONNX export
-│   ├── xla_optimizer.py           # ✅ Graph optimization, operator fusion
-│   ├── model_registry.py          # ✅ Versioning + checkpoint storage
-│   ├── vision_module.py           # ✅ FastAPI server (8001)
-│   ├── ab_testing.py              # ✅ A/B test framework
-│   ├── validation_service.py      # ✅ Model evaluation
-│   └── ...                         # Other services
+open-ml-foundry/
+├── core/
+│   └── session_store.py           # ✅ SQLite session + chat-event storage
 │
-├── serving/                        # API Gateway
-│   ├── main.py                    # ✅ FastAPI (8000) - main endpoints
-│   ├── user_app.py                # ✅ User auth & endpoints
-│   ├── admin_app.py               # ✅ Admin panel
-│   └── features_api.py            # ⚠️ 55 TODO endpoints (stubs)
+├── llm/                            # LLM Fine-Tuning
+│   ├── supported_models.py        # ✅ Qwen, Gemma, DeepSeek, GLM, MiniMax, Kimi registry
+│   ├── model_loader.py            # ✅ HF Hub + GGUF loading
+│   ├── lora_trainer.py            # ✅ LoRA/QLoRA training (peft + transformers)
+│   └── inference_engine.py        # ✅ Chat-style generation (HF + GGUF)
 │
-├── models.py                       # ✅ SQLAlchemy ORM (26 classes)
-├── requirements.txt               # ✅ All dependencies
-├── docker-compose.yml             # ✅ Multi-service setup
+├── edge/                           # Vision Fine-Tuning (Maintained)
+│   ├── jax_train.py                # ✅ Training loop + CNN (run_finetuning)
+│   ├── vision_session_adapter.py   # ✅ Wraps jax_train for session use
+│   ├── model_registry.py           # ✅ Versioning + checkpoint storage
+│   ├── vision_module.py            # ✅ FastAPI server (8001) — legacy one-shot API
+│   └── ...                         # Other vision services
+│
+├── serving/
+│   ├── main.py                     # ✅ FastAPI (8000), mounts session_api + /sessions UI
+│   ├── session_api.py              # ✅ Unified session endpoints (LLM + vision)
+│   ├── features_api.py             # ✅ Image gallery, datasets, training jobs, model registry, A/B testing
+│   └── static/sessions_chat.html   # ✅ Chat-style session UI (vanilla JS, no build step)
+│
+├── sessions.db                     # SQLite session store (gitignored, created on first run)
+├── requirements.txt                # ✅ Added: transformers, peft, accelerate, huggingface-hub
+├── docker-compose.yml              # ✅ Multi-service setup
 │
 ├── mlops/                          # ML Operations
 │   ├── embedding_service.py       # ✅ CLIP embeddings
 │   └── rag_orchestrator.py        # ✅ Semantic search
 │
-├── docs/                           # 66 documentation files
+├── docs/                           # Documentation
 └── tests/                          # Unit tests
-    └── test_security.py           # ✅ Security tests
 ```
 
-**What's Ready (Production):** edge/, serving/ (except features_api.py), models.py, auth system  
-**What's Partial:** features_api.py stubs, web UI (HTML only, no JS)
+**v0.3.0 Status:**
+- ✅ **Implemented:** core/ (sessions), llm/ (LoRA training + inference wiring), edge/vision_session_adapter.py, serving/session_api.py, chat UI at `/sessions`
+- ⏳ **Planned (v0.4.0):** Multi-infrastructure support (Kubernetes, AWS, GCP, Azure, edge clusters)
+
+See [Known Limitations](#-known-limitations) before deploying any of this.
 
 ---
 
 ## 🔌 Core API Endpoints
 
-**Training & Fine-tuning:**
-- `POST /finetune` - Train custom model (5s-hours depending on data)
-- `GET /download-model/{id}` - Download trained checkpoint
-- `POST /inference-finetune` - Inference on fine-tuned model
+**Sessions (New — unified LLM + vision)**
+- `GET /sessions` - Chat-style session UI (web)
+- `GET /api/v1/models` - List supported LLM + vision models
+- `POST /api/v1/sessions` - Create session `{name, model_type, model_name, model_format}`
+- `GET /api/v1/sessions` - List sessions
+- `GET /api/v1/sessions/{id}` - Session details + full chat history
+- `POST /api/v1/sessions/{id}/train` - Start training (LoRA for LLM, `run_finetuning` for vision)
+- `POST /api/v1/sessions/{id}/inference` - Test the model, appended to history
+- `POST /api/v1/sessions/{id}/note` - Add a freeform note to the transcript
+- `DELETE /api/v1/sessions/{id}` - Delete session
 
-**Object Detection:**
-- `GET /detect` - Real-time detection (10-15ms latency)
-- `GET /detect-dashboard` - Visual dashboard
+**Vision (Legacy, one-shot, no session)**
+- `POST /finetune` - Train custom CNN on images
+- `GET /detect` - Real-time object detection
+- `GET /download-model/{id}` - Download trained checkpoint
 
 **Model Management:**
 - `GET /models-versions` - View all model versions
-- `POST /model-validation` - Evaluate model performance
-- `GET /models-comparison` - Compare model versions
-
-**Authentication:**
-- `POST /auth/signup` - Register user
-- `POST /auth/login` - Get JWT token
-- `POST /auth/admin-login` - Admin authentication
+- `GET /model-validation` - Validation dashboard (web)
+- `POST /validate-model/{model_id}` - Run K-fold CV against a model's recorded training dataset
 
 **System:**
 - `GET /metrics` - Prometheus metrics
-- `GET /health` - Health check
 
-Full API docs: `http://localhost:8001/docs` (auto-generated OpenAPI)
+No authentication layer — this is a local, single-user tool (see [Known Limitations](#-known-limitations)).
+
+**Note:** v0.3.0 is local-only. Multi-infrastructure support (Kubernetes, AWS, GCP, Azure) is planned for v0.4.0+.
 
 ---
 
@@ -368,31 +401,35 @@ Contributions welcome! Areas needing work:
 
 See CONTRIBUTING.md for guidelines.
 
-## 🎯 Roadmap (Next Features)
+## 🎯 Roadmap
 
-**Phase 1: UI Foundation (In Progress)**
-- [ ] Model import UI (upload .pth, ONNX, HF model links)
-- [ ] Dataset browser (folder selection + preview)
-- [ ] Training configuration form (learning rate, epochs, batch size)
-- [ ] Hardware profiler (detect GPU/CPU, estimate training time)
+**v0.3.0 (Current) - Multi-Modal Foundations**
+- ⚠️ LLM fine-tuning with LoRA/QLoRA (Qwen, Gemma, DeepSeek, GLM, MiniMax) — see Known Limitations
+- ⚠️ Session-based training with chat history UI — see Known Limitations
+- ⚠️ HuggingFace Hub + GGUF model support — see Known Limitations
+- ✅ Vision models maintained (ResNet, YOLO, CLIP)
+- ✅ Chat UI shipped as a static page (`serving/static/sessions_chat.html`) — plain HTML/JS, not React/Vue
 
-**Phase 2: Real-time Dashboard**
-- [ ] Live loss/accuracy graphs
-- [ ] Confusion matrix visualization
-- [ ] Per-class metrics (precision, recall, F1)
-- [ ] Training time estimation based on hardware
+**v0.4.0 - Enhanced Sessions**
+- [ ] Multi-turn dialogue training (dataset format already designed, needs real-world testing)
+- [ ] Inference optimization for local LLMs
+- [ ] Advanced hyperparameter tuning UI
+- [ ] Training progress streaming (WebSocket instead of 2s polling)
+- [ ] Model comparison dashboard
 
-**Phase 3: Advanced Features**
-- [ ] Multi-GPU distributed training
-- [ ] LLM integration (Claude/OpenAI for data augmentation)
-- [ ] Automated hyperparameter tuning
-- [ ] Model comparison & A/B testing UI
+**v0.5.0 - Multi-Modal Training**
+- [ ] Unified JobSpec format (LLM + vision)
+- [ ] Multi-infrastructure support (Kubernetes, edge clusters)
+- [ ] Distributed training across devices
+- [ ] Cost tracking & optimization
 
-**Phase 4: Production**
-- [ ] Web-based admin panel
-- [ ] Model sharing & collaboration
-- [ ] Usage tracking & quotas
-- [ ] Multi-user fine-tuning queue
+**v1.0.0 - Enterprise**
+- [ ] Federated learning for privacy
+- [ ] Multi-cloud orchestration
+- [ ] Advanced audit logging & compliance
+- [ ] Custom backend plugins
+
+No committed dates — this is a volunteer-driven open-source project; see `.reserve/ROADMAP.txt` for effort estimates per phase.
 
 ## 🔐 Security
 
@@ -402,6 +439,13 @@ See CONTRIBUTING.md for guidelines.
 - **On-device inference**: No data leaves your machine (optional)
 
 See [SECURITY.md](SECURITY.md) for details.
+
+## ⚠️ Known Limitations
+
+- **LLM sessions (`core/`, `llm/`, `serving/session_api.py`) have not been run end-to-end.** The code has been reviewed but not executed against real dependencies — treat it as "should work" until someone runs it and confirms.
+- **No authentication layer.** This is a local, single-user tool by design — there's no login, no per-user access control, and no adversary model between "you" and "you." Don't expose it on a public network interface without adding your own access control in front of it.
+- **LLM model repo ids are not all confirmed.** See `llm/supported_models.py` — each entry's `verified` field tracks whether its HuggingFace Hub repo id has actually been checked.
+- **QLoRA and GGUF are optional installs.** `bitsandbytes` (QLoRA, needs CUDA) and `llama-cpp-python` (GGUF) are commented out in `requirements.txt` because they need build tools or GPU hardware not present by default.
 
 ## 📝 License
 

@@ -59,11 +59,7 @@ sentinel train start --model resnet50 --dataset my-data
 
 **Key Files:**
 - `main.py` — FastAPI server with all endpoints
-- `admin_app.py` — Administrative operations
 - `features_api.py` — ML feature endpoints
-- `handler.py` — Request processing utilities
-- `config.properties` — Server configuration
-- `Dockerfile` — Container image
 
 **API Endpoints:**
 ```
@@ -179,7 +175,6 @@ POST   /infer
 - `test_cli_structure.py` — CLI module tests
 - `test_dataset_browser.py` — Dataset detection tests
 - `test_job_tracker.py` — Job management tests
-- `test_security.py` — Security validation
 - `conftest.py` — Pytest configuration
 
 **Coverage:** 30+ test cases across all modules

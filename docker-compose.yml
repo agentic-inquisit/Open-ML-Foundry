@@ -15,7 +15,6 @@ services:
       - postgres
     volumes:
       - ./serving:/app/serving
-      - ./models.py:/app/models.py
     command: python serving/main.py
 
   edge:

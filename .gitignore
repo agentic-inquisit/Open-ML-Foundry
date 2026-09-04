@@ -298,6 +298,7 @@ batch_results/
 # Local API data
 api_cache/
 temp_uploads/
+uploaded_images/
 request_cache/
 
 # Docker-local volumes

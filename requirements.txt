@@ -48,6 +48,22 @@ optax==0.1.7
 torch==2.2.0
 torchvision==0.17.0
 
+# ============================================================================
+# LLM FINE-TUNING (Sessions)
+# ============================================================================
+transformers==4.38.2
+peft==0.9.0              # LoRA/QLoRA adapters
+accelerate==0.27.2       # Device placement, mixed precision
+huggingface-hub==0.20.3  # Model download from HF Hub
+sentencepiece==0.2.0     # Tokenizers for Qwen/Gemma/etc.
+# bitsandbytes==0.42.0   # QLoRA 4-bit/8-bit quantization (Linux/CUDA only, install manually if GPU available)
+# llama-cpp-python==0.2.55  # GGUF inference (install manually - requires build tools)
+
+# mlops/rag_orchestrator.py
+langchain==0.1.9
+langchain-community==0.0.24  # langchain_community.llms.LlamaCpp needs llama-cpp-python (see above, manual install)
+pymilvus==2.3.6              # Requires a running Milvus server (MILVUS_HOST/MILVUS_PORT env vars)
+
 # TensorFlow for model export and conversion
 tensorflow==2.15.0
 
