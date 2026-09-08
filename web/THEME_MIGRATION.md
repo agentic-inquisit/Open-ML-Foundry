@@ -1,4 +1,4 @@
-# Frontend Theme Migration - Open ML Foundry
+# Frontend Theme Migration - Open Model Foundry
 
 **Date**: 2026-08-21  
 **Status**: Complete  
@@ -8,7 +8,7 @@
 
 ## Overview
 
-The Open ML Foundry frontend has been migrated to a modern, professional theme system with:
+The Open Model Foundry frontend has been migrated to a modern, professional theme system with:
 - ✅ Comprehensive CSS framework (globals.css)
 - ✅ Component-specific styles (theme.css)
 - ✅ Light & Dark mode support

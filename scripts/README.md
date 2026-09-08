@@ -80,7 +80,7 @@ Next steps:
 
 **Output:**
 ```
-🧪 Running Open ML Foundry Test Suite
+🧪 Running Open Model Foundry Test Suite
 
 📋 Test Configuration:
   Module: All
@@ -131,7 +131,7 @@ Next steps:
 
 **Output:**
 ```
-🔍 Running Open ML Foundry Linters
+🔍 Running Open Model Foundry Linters
 
 📝 Running Black (code formatter)...
   ✓ Code formatting: OK
@@ -191,7 +191,7 @@ Next steps:
 
 **Output:**
 ```
-⚡ Running Open ML Foundry Benchmarks
+⚡ Running Open Model Foundry Benchmarks
 
 📊 Benchmark Configuration:
   Model: resnet50
@@ -242,7 +242,7 @@ Next steps:
 
 **Output:**
 ```
-📚 Building Open ML Foundry Documentation
+📚 Building Open Model Foundry Documentation
 
 📋 Documentation Configuration:
   Format: html

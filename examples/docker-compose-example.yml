@@ -1,6 +1,6 @@
 version: '3.8'
 
-# Docker Compose Example: Complete Open ML Foundry Stack
+# Docker Compose Example: Complete Open Model Foundry Stack
 #
 # This example shows how to run all Sentinel services together:
 # - API server (port 8000)

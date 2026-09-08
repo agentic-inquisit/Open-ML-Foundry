@@ -1,6 +1,6 @@
 # Components Overview
 
-Open ML Foundry consists of 9 major components working together.
+Open Model Foundry consists of 9 major components working together.
 
 ## System Architecture
 

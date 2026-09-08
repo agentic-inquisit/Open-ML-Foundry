@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="open-ml-foundry",
+    name="open-model-foundry",
     version="0.3.0",
-    description="Open ML Foundry: Open-source stack to fine-tune models locally, accelerate edge deployments",
-    author="Open ML Foundry Contributors",
+    description="Open Model Foundry: Open-source stack to fine-tune models locally, accelerate edge deployments",
+    author="Open Model Foundry Contributors",
     license="MIT",
     packages=find_packages(),
     install_requires=[
@@ -14,7 +14,7 @@ setup(
     entry_points={
         "console_scripts": [
             "foundry=sentinel.cli.main:cli",
-            "omlf=sentinel.cli.main:cli",
+            "omf=sentinel.cli.main:cli",
         ],
     },
     python_requires=">=3.8",

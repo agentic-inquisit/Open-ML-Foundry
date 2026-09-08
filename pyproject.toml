@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "open-ml-foundry"
+name = "open-model-foundry"
 version = "0.3.0"
-description = "Open ML Foundry: Open-source stack to fine-tune models locally, accelerate edge deployments"
+description = "Open Model Foundry: Open-source stack to fine-tune models locally, accelerate edge deployments"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Open ML Foundry Contributors", email = "info@openmlfoundry.dev"}
+    {name = "Open Model Foundry Contributors", email = "info@openmodelfoundry.dev"}
 ]
 keywords = ["fine-tuning", "machine-learning", "edge-ml", "privacy", "local-training"]
 classifiers = [

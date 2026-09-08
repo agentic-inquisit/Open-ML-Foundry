@@ -2,7 +2,7 @@
 
 ## Overview
 
-Open ML Foundry is a modular, local-first fine-tuning framework composed of four core layers:
+Open Model Foundry is a modular, local-first fine-tuning framework composed of four core layers:
 
 ```
 ┌──────────────────────────────────────┐

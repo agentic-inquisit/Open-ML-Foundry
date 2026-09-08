@@ -1,6 +1,6 @@
 # Benchmarking & Performance
 
-Systematic benchmarking suite for Open ML Foundry.
+Systematic benchmarking suite for Open Model Foundry.
 
 ## Directory Structure
 

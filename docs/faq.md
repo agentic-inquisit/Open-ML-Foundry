@@ -3,7 +3,7 @@
 ## General
 
 **Q: Is my data sent anywhere?**
-A: No. Open ML Foundry is completely local. All data stays on your machine. No cloud services, no telemetry, no external API calls.
+A: No. Open Model Foundry is completely local. All data stays on your machine. No cloud services, no telemetry, no external API calls.
 
 **Q: Can I use this offline?**
 A: Yes, after importing models. Models download on first import, then work offline forever.

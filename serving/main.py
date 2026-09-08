@@ -12,7 +12,7 @@ from edge.preprocess import run_pipeline
 from serving.session_api import router as session_router
 from serving.features_api import router as features_router
 
-app = FastAPI(title="Open ML Foundry")
+app = FastAPI(title="Open Model Foundry")
 
 # CORS for frontend integration
 app.add_middleware(
@@ -66,7 +66,7 @@ async def preprocess_image(file: UploadFile = File(...)):
 @app.get("/")
 async def root():
     return {
-        "status": "Open ML Foundry is running",
+        "status": "Open Model Foundry is running",
         "endpoints": ["/sessions", "/api/v1/sessions", "/api/v1/models",
                       "/jax-inference", "/preprocess"],
     }

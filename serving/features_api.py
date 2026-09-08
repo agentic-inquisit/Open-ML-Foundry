@@ -1,5 +1,5 @@
 """
-Open ML Foundry - Feature API Endpoints
+Open Model Foundry - Feature API Endpoints
 """
 
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Query, Form

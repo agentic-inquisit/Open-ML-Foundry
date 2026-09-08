@@ -1,6 +1,6 @@
 # Testing Infrastructure
 
-Comprehensive testing suite for Open ML Foundry.
+Comprehensive testing suite for Open Model Foundry.
 
 ## Test Structure
 

@@ -1,6 +1,6 @@
-# Open ML Foundry Documentation
+# Open Model Foundry Documentation
 
-Welcome to **Open ML Foundry** — a local fine-tuning framework for edge ML with privacy-first design.
+Welcome to **Open Model Foundry** — a local fine-tuning framework for edge ML with privacy-first design.
 
 ## Quick Navigation
 

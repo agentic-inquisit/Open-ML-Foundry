@@ -1,4 +1,4 @@
-# Open ML Foundry Examples
+# Open Model Foundry Examples
 
 Complete, working examples for different use cases.
 

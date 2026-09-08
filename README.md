@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/icon.ico" alt="Open ML Foundry" width="520">
+  <img src="assets/icon.ico" alt="Open Model Foundry" width="520">
 </p>
 
 > **Open-source multi-modal fine-tuning. LLMs and vision models, fully local, accelerate edge deployments**
@@ -40,7 +40,7 @@ See [Known Limitations](#-known-limitations) — this hasn't been run end-to-end
 ## 📊 Comparison with Existing Tools
 
 **LLM Fine-Tuning Focus**
-| Feature | Open ML Foundry | Unsloth | LLaMA-Factory | Axolotl |
+| Feature | Open Model Foundry | Unsloth | LLaMA-Factory | Axolotl |
 |---------|---------|---------|--------------|---------|
 | **LoRA/QLoRA** | ✅ | ✅⭐ (fastest) | ✅ | ✅ |
 | **Session-based UI** | ✅ Chat history | ⚠️ Unsloth Studio (web UI + desktop app, has session features) | ❌ CLI/Web basic | ❌ CLI only |
@@ -51,7 +51,7 @@ See [Known Limitations](#-known-limitations) — this hasn't been run end-to-end
 | **Vision + LLM** | ✅ Both | ❌ LLM only | ❌ LLM only | ❌ LLM only |
 
 **Vision Fine-Tuning (Legacy Support)**
-| Feature | Open ML Foundry | PyTorch Lightning | FastAI |
+| Feature | Open Model Foundry | PyTorch Lightning | FastAI |
 |---------|---------|--------------|--------|
 | **Image classification** | ✅ ResNet/CNN | ✅ | ✅ |
 | **Object detection** | ✅ FasterRCNN | ❌ | ⚠️ |
@@ -60,7 +60,7 @@ See [Known Limitations](#-known-limitations) — this hasn't been run end-to-end
 
 **TL;DR - Choose based on use case:**
 - **Unsloth if:** You want FASTEST LLM training speed (2-5x)
-- **Open ML Foundry if:** You need LLM + vision + edge deployment + session-based UI
+- **Open Model Foundry if:** You need LLM + vision + edge deployment + session-based UI
 - **LLaMA-Factory if:** You want all HuggingFace models with advanced config
 - **PyTorch Lightning if:** You need distributed/multi-GPU framework
 

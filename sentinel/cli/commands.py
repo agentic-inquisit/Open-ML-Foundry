@@ -1,5 +1,5 @@
 """
-CLI Commands for Open ML Foundry
+CLI Commands for Open Model Foundry
 """
 
 import click
@@ -529,7 +529,7 @@ def train_list(status, limit):
 def examples():
     """Show usage examples"""
     click.echo("""
-    Open ML Foundry - CLI Examples
+    Open Model Foundry - CLI Examples
 
     1. List available models:
        sentinel model list

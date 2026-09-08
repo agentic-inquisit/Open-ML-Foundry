@@ -4,7 +4,7 @@
 
 **Do not open public issues for security vulnerabilities.**
 
-If you discover a security vulnerability in Open ML Foundry, please report it to the maintainers privately.
+If you discover a security vulnerability in Open Model Foundry, please report it to the maintainers privately.
 
 ### How to Report
 
@@ -197,4 +197,4 @@ A: Yes, we monitor security advisories and update regularly.
 
 ---
 
-Thank you for helping keep Open ML Foundry secure! 🔒
+Thank you for helping keep Open Model Foundry secure! 🔒

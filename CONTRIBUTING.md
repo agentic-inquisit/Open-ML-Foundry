@@ -1,4 +1,4 @@
-# Contributing to Open ML Foundry
+# Contributing to Open Model Foundry
 
 Thank you for your interest in contributing! We welcome contributions from everyone. Here's how to get started.
 

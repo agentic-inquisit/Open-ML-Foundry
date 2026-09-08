@@ -1,6 +1,6 @@
 # Contributing Code
 
-Guide for developers wanting to contribute to Open ML Foundry.
+Guide for developers wanting to contribute to Open Model Foundry.
 
 ## Setup Development Environment
 
@@ -367,4 +367,4 @@ See CHANGELOG.md for format.
 
 ## Thank You!
 
-Contributions are what make Open ML Foundry great. Thank you for helping!
+Contributions are what make Open Model Foundry great. Thank you for helping!
