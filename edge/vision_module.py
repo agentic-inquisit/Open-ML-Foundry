@@ -231,7 +231,7 @@ async def startup_event():
         # Fire-and-forget: probes Milvus with a bounded timeout and warns on
         # failure, but never awaited here, so it cannot delay or block startup.
         # run_in_executor (not asyncio.to_thread, which needs 3.9+) for Python 3.8 compat.
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         loop.run_in_executor(None, check_milvus_connection)
     # Ensure finetune storage directory + SQLite DB exist. Guarded like the
     # Milvus check above: a read-only filesystem, full disk, or bad volume

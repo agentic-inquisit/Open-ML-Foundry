@@ -7,7 +7,7 @@ name = "open-model-foundry"
 version = "0.3.0"
 description = "Open Model Foundry: Open-source stack to fine-tune models locally, accelerate edge deployments"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
     {name = "Open Model Foundry Contributors", email = "info@openmodelfoundry.dev"}
@@ -19,7 +19,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -50,7 +49,7 @@ docs = [
 
 [tool.black]
 line-length = 100
-target-version = ["py38", "py39", "py310", "py311"]
+target-version = ["py39", "py310", "py311"]
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -74,7 +73,7 @@ known_first_party = ["sentinel"]
 known_third_party = ["fastapi", "pydantic", "sqlalchemy", "torch", "jax"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 ignore_missing_imports = true
