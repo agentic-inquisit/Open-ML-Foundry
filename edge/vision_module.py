@@ -23,10 +23,6 @@ try:
 except ImportError:
     EVENT_INGESTION_AVAILABLE = False
     print("Warning: mlops.event_ingestion not available. Frame embedding/search disabled.")
-from fastapi.responses import StreamingResponse, HTMLResponse, Response
-import base64
-import io
-import qrcode
 import shutil
 import sqlite3
 import json
