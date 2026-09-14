@@ -89,7 +89,7 @@ This project uses 35+ external packages. We regularly:
 - ✅ Review security advisories
 - ✅ Monitor GitHub security alerts
 
-Check the [dependency list](sentinel-cloud-vision/requirements.txt) for versions.
+Check the [dependency list](requirements.txt) for versions.
 
 ## Security in CI/CD
 

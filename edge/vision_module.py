@@ -8,13 +8,12 @@ import time
 import os
 import sys
 import asyncio
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, BackgroundTasks
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, BackgroundTasks, UploadFile, File, Form
 from fastapi.responses import StreamingResponse, HTMLResponse, Response
 import base64
 import io
 import qrcode
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, UploadFile, File, Form
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
@@ -23,10 +22,6 @@ try:
 except ImportError:
     EVENT_INGESTION_AVAILABLE = False
     print("Warning: mlops.event_ingestion not available. Frame embedding/search disabled.")
-from fastapi.responses import StreamingResponse, HTMLResponse, Response
-import base64
-import io
-import qrcode
 import shutil
 import sqlite3
 import json
@@ -117,7 +112,7 @@ except Exception as e:
     TRAFFIC_ROUTER = None
     print(f"Warning: TrafficRouter not available: {e}")
 
-app = FastAPI(title="LocalML Module")
+app = FastAPI(title="Open Model Foundry Module")
 
 app.add_middleware(
     CORSMiddleware,
@@ -236,30 +231,37 @@ async def startup_event():
         # Fire-and-forget: probes Milvus with a bounded timeout and warns on
         # failure, but never awaited here, so it cannot delay or block startup.
         # run_in_executor (not asyncio.to_thread, which needs 3.9+) for Python 3.8 compat.
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         loop.run_in_executor(None, check_milvus_connection)
-    # Ensure finetune storage directory exists
-    FINETUNE_DIR = Path("finetuned_models")
-    FINETUNE_DIR.mkdir(exist_ok=True)
-    # Initialize SQLite DB
-    DB_PATH = Path("finetune.db")
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute("""CREATE TABLE IF NOT EXISTS finetune_requests (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        target_object TEXT,
-        dataset_path TEXT,
-        result_path TEXT,
-        model_path TEXT,
-        timestamp TEXT
-    )""")
-    # Migration: Add model_path if it doesn't exist
+    # Ensure finetune storage directory + SQLite DB exist. Guarded like the
+    # Milvus check above: a read-only filesystem, full disk, or bad volume
+    # mount here must not abort the whole app's startup.
     try:
-        c.execute("ALTER TABLE finetune_requests ADD COLUMN model_path TEXT")
-    except sqlite3.OperationalError:
-        pass # Already exists
-    conn.commit()
-    conn.close()
+        FINETUNE_DIR = Path("finetuned_models")
+        FINETUNE_DIR.mkdir(exist_ok=True)
+
+        DB_PATH = Path("finetune.db")
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute("""CREATE TABLE IF NOT EXISTS finetune_requests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            target_object TEXT,
+            dataset_path TEXT,
+            result_path TEXT,
+            model_path TEXT,
+            timestamp TEXT
+        )""")
+        # Migration: adds model_path for a finetune.db that predates this
+        # column (CREATE TABLE above is a no-op against an existing file).
+        try:
+            c.execute("ALTER TABLE finetune_requests ADD COLUMN model_path TEXT")
+        except sqlite3.OperationalError:
+            pass # Already exists
+        conn.commit()
+        conn.close()
+    except (OSError, sqlite3.Error) as e:
+        print(f"Warning: could not initialize finetune storage/DB ({e}) — "
+              f"/finetune and related endpoints will fail until this is fixed.")
 
 @app.get("/model-info")
 async def get_model_info():
@@ -1653,7 +1655,7 @@ async def admin_console():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Admin Console · LocalML</title>
+        <title>Admin Console · Open Model Foundry</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <style>
             :root {
@@ -2065,7 +2067,7 @@ async def admin_console():
     <body>
         <div class="top-bar">
             <a href="/" class="home">← Back to Dashboard</a>
-            <div class="crumb">LocalML · <b>Admin Console</b></div>
+            <div class="crumb">Open Model Foundry · <b>Admin Console</b></div>
             <div class="live-indicator">
                 <span class="live-dot"></span>
                 LIVE
@@ -2077,7 +2079,7 @@ async def admin_console():
                 <div class="page-icon">📊</div>
                 <div>
                     <h1>Admin Console</h1>
-                    <p>Centralized monitoring across all LocalML subsystems.</p>
+                    <p>Centralized monitoring across all 'Open Model Foundry' subsystems.</p>
                 </div>
             </div>
 
@@ -2688,7 +2690,7 @@ async def mobile_capture_page():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>LocalML</title>
+        <title>Open Model Foundry</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <style>
             :root {
@@ -3192,7 +3194,7 @@ async def finetune_dashboard():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Fine-tuning · LocalML</title>
+        <title>Fine-tuning · Open Model Foundry</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
         <style>
@@ -3453,7 +3455,7 @@ async def finetune_dashboard():
     <body>
         <div class="top-bar">
             <a href="/" class="home">← Back to Dashboard</a>
-            <div class="crumb">LocalML · <b>Fine-tuning</b></div>
+            <div class="crumb">Open Model Foundry · <b>Fine-tuning</b></div>
         </div>
         <div class="container">
             <div class="page-header">
@@ -6377,7 +6379,7 @@ async def inference_serving_dashboard():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Inference Serving · LocalML</title>
+        <title>Inference Serving · Open Model Foundry </title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <style>
             :root {
@@ -6713,7 +6715,7 @@ async def inference_serving_dashboard():
     <body>
         <div class="top-bar">
             <a href="/" class="home">← Back to Dashboard</a>
-            <div class="crumb">LocalML · <b>Inference Serving</b></div>
+            <div class="crumb">Open Model Foundry · <b>Inference Serving</b></div>
         </div>
         <div class="container">
             <div class="page-header">
@@ -7130,7 +7132,7 @@ async def root():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>LocalML | Main Dashboard</title>
+        <title>Open Model Foundry | Main Dashboard</title>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
         <style>
             :root {
@@ -7473,7 +7475,7 @@ async def root():
             <div class="brand">
                 <div class="logo">S</div>
                 <div class="brand-text">
-                    <h1>LocalML</h1>
+                    <h1>Open Model Foundry</h1>
                     <p>ML Operations Platform</p>
                 </div>
             </div>
@@ -7670,7 +7672,7 @@ async def root():
             </div>
 
             <div class="footer">
-                <p>LocalML · ML Operations Platform · <a href="/admin">View System Status</a></p>
+                <p>Open Model Foundry · ML Operations Platform · <a href="/admin">View System Status</a></p>
             </div>
         </div>
     </body>

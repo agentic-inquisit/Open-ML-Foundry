@@ -50,8 +50,8 @@ ssh pi@raspberrypi.local
 sudo apt update
 sudo apt install python3-pip python3-opencv
 
-# Install sentinel-finetune
-pip3 install sentinel-finetune
+# Install open-model-foundry
+pip3 install open-model-foundry
 
 # Download model (copy from desktop)
 scp ~/exports/plant-detector.tflite pi@raspberrypi.local:~/
@@ -148,7 +148,7 @@ To improve speed:
 # Install dependencies
 sudo apt install python3-opencv
 
-pip install sentinel-finetune
+pip install open-model-foundry
 pip install onnxruntime-gpu  # GPU inference
 ```
 

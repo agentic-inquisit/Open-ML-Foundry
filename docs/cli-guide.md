@@ -1,6 +1,6 @@
 # CLI Reference Guide
 
-All commands available in sentinel-finetune CLI.
+All commands available in the Open Model Foundry CLI.
 
 ## Model Commands
 

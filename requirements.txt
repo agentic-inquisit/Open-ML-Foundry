@@ -1,5 +1,5 @@
 # ============================================================================
-# LocalML finetune - Complete Dependencies
+# Open Model Foundry - Complete Dependencies
 # Consolidated production + development requirements
 # Usage: pip install -r requirements.txt
 # ============================================================================
@@ -70,7 +70,6 @@ tensorflow==2.15.0
 # ============================================================================
 # COMPUTER VISION
 # ============================================================================
-opencv-python==4.8.1.78
 opencv-python-headless==4.9.0.80
 Pillow==10.2.0
 

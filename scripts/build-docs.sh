@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build documentation for LocalML finetune
+# Build documentation for Open Model Foundry
 # Usage: ./scripts/build-docs.sh [options]
 # Options: --serve, --clean, --format <fmt>
 
@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "📚 Building LocalML finetune Documentation"
+echo "📚 Building Open Model Foundry Documentation"
 echo ""
 
 # Activate virtual environment if it exists

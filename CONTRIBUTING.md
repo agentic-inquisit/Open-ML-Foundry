@@ -84,8 +84,8 @@ Ready to code? Here's how to submit a pull request.
 1. **Fork the repository** - Click the fork button on GitHub
 2. **Clone your fork**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/sentinel-cloud-vision.git
-   cd sentinel-cloud-vision
+   git clone https://github.com/YOUR_USERNAME/open-ml-foundry.git
+   cd open-ml-foundry
    ```
 3. **Create a branch**
    ```bash
@@ -98,7 +98,7 @@ Ready to code? Here's how to submit a pull request.
 
 1. **Install dependencies**
    ```bash
-   cd sentinel-cloud-vision
+   cd open-ml-foundry
    pip install -r requirements.txt
    ```
 
@@ -276,7 +276,7 @@ pytest tests/test_models.py
 pytest tests/test_models.py::test_user_model
 
 # Run with coverage
-pytest --cov=sentinel_cloud_vision tests/
+pytest --cov=core --cov=edge --cov=llm --cov=mlops --cov=sentinel --cov=serving tests/
 ```
 
 ### Database Changes

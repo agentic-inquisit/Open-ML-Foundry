@@ -65,7 +65,7 @@ python detect_pi.py --model model.tflite --camera /dev/video0
 
 ## Full Stack Deployment
 
-Run complete Sentinel stack with Docker Compose:
+Run the complete Open Model Foundry stack with Docker Compose:
 
 ```bash
 docker-compose -f docker-compose-example.yml up
@@ -115,7 +115,7 @@ python detect_pi.py --model model.tflite
 ### 5. Monitor
 
 ```bash
-# Via LocalML CLI
+# Via Open Model Foundry CLI
 sentinel train status --job-id train_001
 
 # Via API

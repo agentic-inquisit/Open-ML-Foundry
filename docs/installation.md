@@ -14,7 +14,7 @@
 ### 1. pip (Recommended for Users)
 
 ```bash
-pip install sentinel-finetune
+pip install open-model-foundry
 ```
 
 Verify installation:
@@ -29,7 +29,7 @@ Clone and run:
 
 ```bash
 git clone https://github.com/agentic-inquisit/open-ml-foundry.git
-cd sentinel-finetune
+cd open-ml-foundry
 docker-compose up
 ```
 
@@ -39,7 +39,7 @@ Access API at `http://localhost:8000`
 
 ```bash
 git clone https://github.com/agentic-inquisit/open-ml-foundry.git
-cd sentinel-finetune
+cd open-ml-foundry
 pip install -e ".[dev]"
 pre-commit install
 ```
@@ -86,7 +86,7 @@ sentinel train start \
 nvidia-smi
 ```
 
-Sentinel auto-detects CUDA. To force CPU:
+Open Model Foundry auto-detects CUDA. To force CPU:
 
 ```bash
 sentinel train start --device cpu
@@ -113,7 +113,7 @@ pip install --upgrade torch torchvision torchaudio
 Install to user path:
 
 ```bash
-pip install --user sentinel-finetune
+pip install --user open-model-foundry
 export PATH="$HOME/.local/bin:$PATH"
 ```
 

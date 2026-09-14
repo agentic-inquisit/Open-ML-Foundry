@@ -149,5 +149,5 @@ result = cache.get_or_compute(model_name, image_hash, infer_fn)
 
 - [Raspberry Pi Setup](https://www.raspberrypi.org/documentation/)
 - [Jetson Nano Docs](https://docs.nvidia.com/jetson/jetson-nano-devkit/index.html)
-- [LocalML Edge Deployment](../../docs/tutorials/edge-deployment.md)
+- [Open Model Foundry Edge Deployment](../../docs/tutorials/edge-deployment.md)
 - [TensorFlow Lite](https://www.tensorflow.org/lite)

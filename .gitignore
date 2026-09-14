@@ -231,7 +231,7 @@ htmlcov/
 .gradle
 
 # ════════════════════════════════════════════════════════════════
-# LocalML Finetune - Local Runtime & Development Files
+# Open Model Foundry - Local Runtime & Development Files
 # ════════════════════════════════════════════════════════════════
 
 # Local configuration overrides (per-developer)
@@ -242,7 +242,7 @@ config.local.yml
 config.local.yaml
 settings.local.py
 
-# LocalML-specific runtime directories
+# Open Model Foundry runtime directories
 edge/finetune_requests/
 edge/finetuned_models/
 edge/*.db

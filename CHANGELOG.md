@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 - Repository restructured for better organization
-- All documentation moved to `sentinel-cloud-vision/docs/`
+- All documentation moved to `docs/`
 - Dependencies consolidated into single `requirements.txt`
 - Root configuration files organized by purpose
 
@@ -114,7 +114,7 @@ Given a version number MAJOR.MINOR.PATCH:
 - Database schema updated in migrations/
 - API endpoints renamed for consistency
 - Configuration format changed
-- See [Migration Guide](sentinel-cloud-vision/docs/migration-0.9-to-1.0.md)
+- See [Migration Guide](docs/migration-0.9-to-1.0.md)
 
 ---
 
@@ -126,7 +126,7 @@ Given a version number MAJOR.MINOR.PATCH:
 git pull origin main
 
 # Install any new dependencies
-pip install -r sentinel-cloud-vision/requirements.txt
+pip install -r requirements.txt
 
 # Restart services
 docker-compose up -d
@@ -138,7 +138,7 @@ docker-compose up -d
 git pull origin main
 
 # Install development dependencies
-pip install -r sentinel-cloud-vision/requirements.txt
+pip install -r requirements.txt
 
 # Run tests to verify
 pytest tests/
@@ -165,8 +165,8 @@ Want to help shape the next release? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Links
 
-- [Repository](https://github.com/sentinel/cloud-vision)
-- [Issues & Discussions](https://github.com/sentinel/cloud-vision/issues)
+- [Repository](https://github.com/agentic-inquisit/open-ml-foundry)
+- [Issues & Discussions](https://github.com/agentic-inquisit/open-ml-foundry/issues)
 - [Security Policy](SECURITY.md)
 - [Contributing Guide](CONTRIBUTING.md)
 
@@ -176,4 +176,4 @@ Want to help shape the next release? See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Thanks to all contributors who have made releases possible! 🙏
 
-Release maintained by: The LocalML Team
+Release maintained by: The Open Model Foundry Team

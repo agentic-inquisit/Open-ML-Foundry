@@ -29,7 +29,7 @@ Welcome to **Open Model Foundry** — a local fine-tuning framework for edge ML 
 
 ```bash
 # Install
-pip install sentinel-finetune
+pip install open-model-foundry
 
 # First fine-tune
 sentinel model import --model resnet50

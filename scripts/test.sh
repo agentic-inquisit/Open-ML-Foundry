@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run full test suite for LocalML finetune
+# Run full test suite for Open Model Foundry
 # Usage: ./scripts/test.sh [options]
 # Options: --verbose, --coverage, --fast, --module <name>
 
@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "🧪 Running LocalML finetune Test Suite"
+echo "🧪 Running Open Model Foundry Test Suite"
 echo ""
 
 # Activate virtual environment if it exists

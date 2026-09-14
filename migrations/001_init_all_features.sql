@@ -1,5 +1,5 @@
 -- ============================================================================
--- Sentinel Vision - Database Migrations for All 20 Features
+-- Open Model Foundry - Database Migrations for All 20 Features
 -- Run: psql -U user -d sentinel_db -f migrations/001_init_all_features.sql
 -- ============================================================================
 
