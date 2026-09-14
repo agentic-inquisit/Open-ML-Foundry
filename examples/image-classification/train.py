@@ -13,7 +13,8 @@ from typing import Dict, Tuple
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader, ImageFolder
+from torch.utils.data import DataLoader
+from torchvision.datasets import ImageFolder
 from tqdm import tqdm
 
 

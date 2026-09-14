@@ -363,7 +363,7 @@ class ValidationService:
                 )
 
             # Check if high variance (less stable)
-            if new_std > prev_kfold_result.get("std_accuracy", 0.0) + 0.05:
+            if new_std > previous_kfold_result.get("std_accuracy", 0.0) + 0.05:
                 decision["warnings"].append(
                     f"New model has higher variance (std: {new_std:.3f}), "
                     f"less stable than previous"

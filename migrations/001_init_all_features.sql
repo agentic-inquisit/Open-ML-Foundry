@@ -52,10 +52,10 @@ CREATE TABLE IF NOT EXISTS image_assets (
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     processed BOOLEAN DEFAULT FALSE,
     metadata JSONB,
-    tags VARCHAR(500),
-    INDEX user_idx (owner_id),
-    INDEX created_idx (uploaded_at)
+    tags VARCHAR(500)
 );
+
+CREATE INDEX IF NOT EXISTS image_assets_uploaded_at_idx ON image_assets(uploaded_at);
 
 -- ============================================================================
 -- 2. ML MODELS & VERSIONS
@@ -79,10 +79,11 @@ CREATE TABLE IF NOT EXISTS ml_models (
     file_path VARCHAR(512),
     s3_key VARCHAR(512),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB,
-    INDEX type_idx (model_type),
-    INDEX active_idx (is_active)
+    metadata JSONB
 );
+
+CREATE INDEX IF NOT EXISTS ml_models_model_type_idx ON ml_models(model_type);
+CREATE INDEX IF NOT EXISTS ml_models_is_active_idx ON ml_models(is_active);
 
 CREATE TABLE IF NOT EXISTS model_versions (
     id SERIAL PRIMARY KEY,
@@ -115,10 +116,11 @@ CREATE TABLE IF NOT EXISTS datasets (
     split_train FLOAT DEFAULT 0.8,
     split_val FLOAT DEFAULT 0.1,
     split_test FLOAT DEFAULT 0.1,
-    metadata JSONB,
-    INDEX owner_idx (owner_id),
-    INDEX status_idx (status)
+    metadata JSONB
 );
+
+CREATE INDEX IF NOT EXISTS datasets_owner_idx ON datasets(owner_id);
+CREATE INDEX IF NOT EXISTS datasets_status_idx ON datasets(status);
 
 -- ============================================================================
 -- 4. TRAINING JOBS
@@ -143,10 +145,10 @@ CREATE TABLE IF NOT EXISTS training_jobs (
     val_loss FLOAT,
     output_model_id INTEGER REFERENCES ml_models(id),
     logs TEXT,
-    error_message TEXT,
-    INDEX status_idx (status),
-    INDEX user_idx (user_id)
+    error_message TEXT
 );
+
+CREATE INDEX IF NOT EXISTS training_jobs_status_idx ON training_jobs(status);
 
 -- ============================================================================
 -- 5. BATCH JOBS
@@ -164,9 +166,10 @@ CREATE TABLE IF NOT EXISTS batch_jobs (
     started_at TIMESTAMP,
     completed_at TIMESTAMP,
     results_location VARCHAR(512),
-    metadata JSONB,
-    INDEX status_idx (status)
+    metadata JSONB
 );
+
+CREATE INDEX IF NOT EXISTS batch_jobs_status_idx ON batch_jobs(status);
 
 -- ============================================================================
 -- 6. ANNOTATIONS
@@ -183,8 +186,7 @@ CREATE TABLE IF NOT EXISTS annotations (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     verified BOOLEAN DEFAULT FALSE,
     verified_by INTEGER REFERENCES users(id),
-    verified_at TIMESTAMP,
-    INDEX image_idx (image_id)
+    verified_at TIMESTAMP
 );
 
 -- ============================================================================
@@ -199,10 +201,11 @@ CREATE TABLE IF NOT EXISTS inference_results (
     predictions JSONB,
     confidence_score FLOAT,
     inference_time_ms FLOAT,
-    processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    INDEX model_idx (model_id),
-    INDEX time_idx (processed_at)
+    processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS inference_results_model_idx ON inference_results(model_id);
+CREATE INDEX IF NOT EXISTS inference_results_processed_at_idx ON inference_results(processed_at);
 
 CREATE TABLE IF NOT EXISTS performance_metrics (
     id SERIAL PRIMARY KEY,
@@ -211,9 +214,10 @@ CREATE TABLE IF NOT EXISTS performance_metrics (
     value FLOAT,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     dataset_id INTEGER,
-    metadata JSONB,
-    INDEX model_time_idx (model_id, timestamp)
+    metadata JSONB
 );
+
+CREATE INDEX IF NOT EXISTS performance_metrics_model_time_idx ON performance_metrics(model_id, timestamp);
 
 -- ============================================================================
 -- 8. A/B TESTING
@@ -248,10 +252,11 @@ CREATE TABLE IF NOT EXISTS notifications (
     message TEXT,
     read BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    data JSONB,
-    INDEX user_idx (user_id),
-    INDEX read_idx (read)
+    data JSONB
 );
+
+CREATE INDEX IF NOT EXISTS notifications_user_idx ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS notifications_read_idx ON notifications(read);
 
 -- ============================================================================
 -- 10. API KEYS
@@ -268,9 +273,10 @@ CREATE TABLE IF NOT EXISTS api_keys (
     last_used TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE,
-    INDEX key_hash_idx (key_hash)
+    is_active BOOLEAN DEFAULT TRUE
 );
+
+CREATE INDEX IF NOT EXISTS api_keys_key_hash_idx ON api_keys(key_hash);
 
 -- ============================================================================
 -- 11. WEBHOOKS
@@ -329,8 +335,7 @@ CREATE TABLE IF NOT EXISTS cost_metrics (
     units INTEGER,
     unit_cost FLOAT,
     date DATE DEFAULT CURRENT_DATE,
-    metadata JSONB,
-    INDEX user_date_idx (user_id, date)
+    metadata JSONB
 );
 
 -- ============================================================================
@@ -346,9 +351,10 @@ CREATE TABLE IF NOT EXISTS anomaly_detections (
     is_anomaly BOOLEAN,
     heatmap_path VARCHAR(512),
     detected_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB,
-    INDEX time_idx (detected_at)
+    metadata JSONB
 );
+
+CREATE INDEX IF NOT EXISTS anomaly_detections_detected_at_idx ON anomaly_detections(detected_at);
 
 -- ============================================================================
 -- 15. EXPLAINABILITY
@@ -378,11 +384,11 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     ip_address VARCHAR(50),
     user_agent VARCHAR(500),
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    metadata JSONB,
-    INDEX user_idx (user_id),
-    INDEX action_idx (action),
-    INDEX time_idx (timestamp)
+    metadata JSONB
 );
+
+CREATE INDEX IF NOT EXISTS audit_logs_action_idx ON audit_logs(action);
+CREATE INDEX IF NOT EXISTS audit_logs_timestamp_idx ON audit_logs(timestamp);
 
 -- ============================================================================
 -- 17. EXPORT JOBS
@@ -399,9 +405,10 @@ CREATE TABLE IF NOT EXISTS export_jobs (
     s3_key VARCHAR(512),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     completed_at TIMESTAMP,
-    file_size_mb FLOAT,
-    INDEX status_idx (status)
+    file_size_mb FLOAT
 );
+
+CREATE INDEX IF NOT EXISTS export_jobs_status_idx ON export_jobs(status);
 
 -- ============================================================================
 -- 18. STREAMING SESSIONS
@@ -439,9 +446,10 @@ CREATE TABLE IF NOT EXISTS custom_model_training (
     loss FLOAT,
     output_model_id INTEGER REFERENCES ml_models(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP,
-    INDEX status_idx (status)
+    completed_at TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS custom_model_training_status_idx ON custom_model_training(status);
 
 -- ============================================================================
 -- 20. INVOICES & BILLING
@@ -461,10 +469,11 @@ CREATE TABLE IF NOT EXISTS invoices (
     paid_date DATE,
     issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     items JSONB,
-    metadata JSONB,
-    INDEX number_idx (invoice_number),
-    INDEX user_idx (user_id)
+    metadata JSONB
 );
+
+CREATE INDEX IF NOT EXISTS invoices_invoice_number_idx ON invoices(invoice_number);
+CREATE INDEX IF NOT EXISTS invoices_user_idx ON invoices(user_id);
 
 -- ============================================================================
 -- INDEXES FOR PERFORMANCE
