@@ -13,14 +13,14 @@ Get up and running in 5 minutes.
 ### Option 1: pip (Recommended)
 
 ```bash
-pip install sentinel-finetune
+pip install open-model-foundry
 ```
 
 ### Option 2: Docker Compose
 
 ```bash
 git clone https://github.com/agentic-inquisit/open-ml-foundry.git
-cd sentinel-finetune
+cd open-ml-foundry
 docker-compose up
 ```
 

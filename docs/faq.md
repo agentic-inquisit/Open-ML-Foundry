@@ -29,7 +29,7 @@ python --version
 If still failing, try:
 ```bash
 pip install --upgrade pip
-pip install sentinel-finetune
+pip install open-model-foundry
 ```
 
 **Q: Can I use on Windows?**
@@ -105,7 +105,7 @@ Recommended: 100+ per class
 Better: 1000+ per class
 
 **Q: What if my dataset is imbalanced?**
-A: Sentinel handles this automatically with weighted sampling.
+A: Open Model Foundry handles this automatically with weighted sampling.
 
 **Q: Can I use external datasets (ImageNet, COCO)?**
 A: Yes, download and prepare:

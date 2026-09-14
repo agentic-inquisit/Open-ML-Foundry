@@ -8,7 +8,7 @@ Guide for developers wanting to contribute to Open Model Foundry.
 
 ```bash
 git clone https://github.com/agentic-inquisit/open-ml-foundry.git
-cd sentinel-finetune
+cd open-ml-foundry
 ```
 
 ### 2. Create Virtual Environment

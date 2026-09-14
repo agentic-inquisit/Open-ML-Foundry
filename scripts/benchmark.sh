@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run performance benchmarks for LocalML finetune
+# Run performance benchmarks for Open Model Foundry
 # Usage: ./scripts/benchmark.sh [options]
 # Options: --model <name>, --dataset <path>, --output <file>, --gpu
 
@@ -21,7 +21,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "⚡ Running LocalML finetune Benchmarks"
+echo "⚡ Running Open Model Foundry Benchmarks"
 echo ""
 
 # Activate virtual environment if it exists

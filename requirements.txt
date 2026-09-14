@@ -1,5 +1,5 @@
 # ============================================================================
-# LocalML finetune - Complete Dependencies
+# Open Model Foundry - Complete Dependencies
 # Consolidated production + development requirements
 # Usage: pip install -r requirements.txt
 # ============================================================================

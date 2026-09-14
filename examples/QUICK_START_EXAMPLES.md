@@ -7,7 +7,7 @@ This directory contains example workflows for using Sentinel CLI and REST API.
 ### Example 1: List Built-in Models (30 seconds)
 
 ```bash
-cd sentinel-cloud-vision-upd
+cd open-ml-foundry
 
 # Activate venv (if not already activated)
 source venv/bin/activate
@@ -411,7 +411,7 @@ sentinel train start --model cnn --dataset ./images --batch-size 8
 ## File Structure for This Example
 
 ```
-sentinel-cloud-vision-upd/
+open-ml-foundry/
 ├── examples/
 │   ├── QUICK_START_EXAMPLES.md    ← You are here
 │   ├── sample_images/              (optional: test images)

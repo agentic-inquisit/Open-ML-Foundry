@@ -40,7 +40,7 @@ All coordinates are normalized (0-1).
 ## References
 
 - [YOLOv5 Docs](https://docs.ultralytics.com/)
-- [LocalML Object Detection Tutorial](../../docs/tutorials/object-detection.md)
+- [Open Model Foundry Object Detection Tutorial](../../docs/tutorials/object-detection.md)
 
 ## Common Tasks
 

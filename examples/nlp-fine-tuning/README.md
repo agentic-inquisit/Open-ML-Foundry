@@ -78,4 +78,4 @@ print(f"Sentiment: {prediction}")  # positive, negative, neutral
 
 - [HuggingFace Transformers](https://huggingface.co/transformers/)
 - [BERT Paper](https://arxiv.org/abs/1810.04805)
-- [LocalML NLP Tutorial](../../docs/tutorials/nlp-models.md)
+- [Open Model Foundry NLP Tutorial](../../docs/tutorials/nlp-models.md)

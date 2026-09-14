@@ -1,5 +1,5 @@
 [run]
-# Coverage configuration for Sentinel-Finetune
+# Coverage configuration for Open Model Foundry
 source = sentinel
 omit =
     */tests/*

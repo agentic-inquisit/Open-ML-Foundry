@@ -1,10 +1,10 @@
 #!/bin/bash
-# Setup development environment for LocalML finetune
+# Setup development environment for Open Model Foundry
 # Usage: ./scripts/setup-dev.sh
 
 set -e  # Exit on error
 
-echo "🚀 Setting up LocalML finetune development environment..."
+echo "🚀 Setting up Open Model Foundry development environment..."
 echo ""
 
 # Check Python version

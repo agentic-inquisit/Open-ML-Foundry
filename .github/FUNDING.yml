@@ -4,24 +4,24 @@
 github: agentic-inquisit
 
 # Open Collective
-open_collective: sentinel-finetune
+open_collective: open-model-foundry
 
 # Patreon
-patreon: sentinel_ml
+patreon: openmodelfoundry
 
 # Buy Me a Coffee
-buy_me_coffee: sentinel_dev
+buy_me_coffee: openmodelfoundry
 
 # Ko-fi
-ko_fi: sentinelfinetune
+ko_fi: openmodelfoundry
 
 # Liberapay
-liberapay: sentinel-finetune
+liberapay: open-model-foundry
 
 # Issuehunt
 issuehunt: agentic-inquisit/open-ml-foundry
 
 # Custom funding links
 custom:
-  - "https://sentinel-finetune.dev/support"
+  - "https://openmodelfoundry.dev/support"
   - "https://github.com/agentic-inquisit/open-ml-foundry/blob/main/CONTRIBUTING.md"

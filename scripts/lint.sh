@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run all linters for LocalML finetune
+# Run all linters for Open Model Foundry
 # Usage: ./scripts/lint.sh [options]
 # Options: --fix, --verbose, --module <path>
 
@@ -19,7 +19,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-echo "🔍 Running LocalML finetune Linters"
+echo "🔍 Running Open Model Foundry Linters"
 echo ""
 
 # Activate virtual environment if it exists

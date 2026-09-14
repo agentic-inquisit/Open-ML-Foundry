@@ -36,7 +36,7 @@ apt install python3.11    # Linux
 **Solution:**
 ```bash
 # Reinstall with dependencies
-pip install --upgrade --force-reinstall sentinel-finetune
+pip install --upgrade --force-reinstall open-model-foundry
 ```
 
 ---
@@ -53,7 +53,7 @@ pip install --upgrade --force-reinstall sentinel-finetune
 export PATH="$HOME/.local/bin:$PATH"
 
 # Or reinstall in user space
-pip install --user sentinel-finetune
+pip install --user open-model-foundry
 ```
 
 ### Import error: "No module named 'torch'"
@@ -387,7 +387,7 @@ nvidia-smi
 
 ## Getting More Help
 
-1. **Check docs:** https://sentinel-finetune.readthedocs.io
+1. **Check docs:** https://open-ml-foundry.readthedocs.io
 2. **GitHub Issues:** Report bugs
 3. **GitHub Discussions:** Ask questions
 4. **FAQ:** Common answers

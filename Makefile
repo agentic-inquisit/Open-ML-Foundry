@@ -1,7 +1,7 @@
 .PHONY: help install dev-install lint format test clean docker-build docker-up docs
 
 help:
-	@echo "Sentinel-Finetune Development Tasks"
+	@echo "Open Model Foundry Development Tasks"
 	@echo "===================================="
 	@echo ""
 	@echo "Setup:"
@@ -41,17 +41,17 @@ dev-install:
 # Code quality targets
 lint:
 	@echo "Running flake8..."
-	flake8 sentinel tests --max-line-length=100 --extend-ignore=E203,W503
+	flake8 core edge llm mlops sentinel serving tests --max-line-length=100 --extend-ignore=E203,W503
 	@echo "Running mypy..."
-	mypy sentinel --ignore-missing-imports || true
+	mypy core edge llm mlops sentinel serving --ignore-missing-imports || true
 	@echo "Running pylint..."
-	pylint sentinel --exit-zero --max-line-length=100 || true
+	pylint core edge llm mlops sentinel serving --exit-zero --max-line-length=100 || true
 
 format:
 	@echo "Formatting with black..."
-	black sentinel tests --line-length=100
+	black core edge llm mlops sentinel serving tests --line-length=100
 	@echo "Sorting imports with isort..."
-	isort sentinel tests --profile=black --line-length=100
+	isort core edge llm mlops sentinel serving tests --profile=black --line-length=100
 
 # Test targets
 test:
@@ -61,11 +61,11 @@ test-verbose:
 	pytest tests/ -vv --tb=long --capture=no
 
 coverage:
-	pytest tests/ --cov=sentinel --cov-report=html --cov-report=term-missing
+	pytest tests/ --cov=core --cov=edge --cov=llm --cov=mlops --cov=sentinel --cov=serving --cov-report=html --cov-report=term-missing
 	@echo "Coverage report generated in htmlcov/index.html"
 
 security-check:
-	bandit -r sentinel
+	bandit -r core edge llm mlops sentinel serving
 	safety check --json
 
 pre-commit:
